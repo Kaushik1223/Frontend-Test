@@ -1,0 +1,137 @@
+import React, { useState } from 'react';
+
+const FileUpload = ({ onFileSelect }) => {
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
+  const handleFileChange = (event) => {
+    const files = Array.from(event.target.files);
+    setSelectedFiles(files);
+    onFileSelect(files); // Pass the files to the parent component or server
+  };
+
+  return (
+    <div className="file-upload">
+      <div className="file-input-container">
+        <input
+          type="file"
+          multiple
+          className="file-input"
+          onChange={handleFileChange}
+        />
+        <div className="file-input-overlay">
+          <img
+            src="/path/to/upload-icon.png" // Replace with the path to your upload icon
+            alt="Upload Icon"
+            className="upload-icon"
+          />
+          <p>Drag & Drop or <span className="browse">Browse</span></p>
+          <p className="file-support">Supports: DOC, PDF, CSV</p>
+        </div>
+      </div>
+      {selectedFiles.length > 0 && (
+        <div className="selected-files">
+          <h4>Selected Files:</h4>
+          <ul>
+            {selectedFiles.map((file, index) => (
+              <li key={index}>{file.name}</li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default FileUpload;
+
+#-------------------------------
+
+.selected-files {
+  margin-top: 10px;
+}
+
+.selected-files h4 {
+  margin-bottom: 5px;
+}
+
+.selected-files ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.selected-files li {
+  background: #f7f7f7;
+  margin: 5px 0;
+  padding: 5px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+}
+
+# -------------------------------
+
+import React, { useState } from 'react';
+import Navbar from './components/Navbar';
+import TextComponent from './components/TextComponent';
+import FileUpload from './components/FileUpload';
+import ShowResultButton from './components/ShowResultButton';
+import Footer from './components/Footer';
+import './App.css';
+
+function App() {
+  const [filesToUpload, setFilesToUpload] = useState([]);
+
+  const handleFileSelect = (files) => {
+    setFilesToUpload(files);
+  };
+
+  const handleShowResult = () => {
+    // Logic for handling "Show Result"
+    console.log("Show Result button clicked");
+  };
+
+  const uploadFilesToServer = () => {
+    const formData = new FormData();
+    filesToUpload.forEach((file) => {
+      formData.append('files', file);
+    });
+
+    fetch('http://your-server-url/upload', {
+      method: 'POST',
+      body: formData,
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        console.log('Success:', data);
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+      });
+  };
+
+  return (
+    <div className="App">
+      <Navbar />
+      <TextComponent />
+      <div className="main-container">
+        <div className="file-upload-container">
+          <div>
+            <h3>Upload Invoice</h3>
+            <FileUpload onFileSelect={handleFileSelect} />
+          </div>
+          <div>
+            <h3>Upload Confirmations</h3>
+            <FileUpload onFileSelect={handleFileSelect} />
+          </div>
+        </div>
+        <button className="reconcile-button" onClick={uploadFilesToServer}>
+          Reconcile
+        </button>
+        <ShowResultButton onClick={handleShowResult} />
+      </div>
+      <Footer />
+    </div>
+  );
+}
+
+export default App;
