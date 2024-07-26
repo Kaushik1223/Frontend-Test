@@ -54,26 +54,78 @@ export default FileUpload;
 
 #-------------------------------
 
-.selected-files {
+.file-upload {
+  margin: 20px;
+}
+
+.file-label {
+  display: block;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.file-input-container {
+  position: relative;
+  border: 2px dashed #ccc;
+  padding: 20px;
+  cursor: pointer;
+}
+
+.upload-icon {
+  width: 50px;
+  height: 50px;
+}
+
+.file-input-overlay {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.file-input {
+  opacity: 0;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  cursor: pointer;
+}
+
+.selected-file {
   margin-top: 10px;
+  text-align: left;
 }
 
-.selected-files h4 {
-  margin-bottom: 5px;
-}
-
-.selected-files ul {
-  list-style: none;
+.selected-file ul {
+  list-style-type: none;
   padding: 0;
   margin: 0;
 }
 
-.selected-files li {
+.selected-file li {
   background: #f7f7f7;
-  margin: 5px 0;
   padding: 5px;
-  border-radius: 5px;
   border: 1px solid #ccc;
+  border-radius: 5px;
+  margin-bottom: 5px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.selected-file button {
+  background-color: #e74c3c;
+  color: white;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.selected-file button:hover {
+  background-color: #c0392b;
 }
 
 # -------------------------------
