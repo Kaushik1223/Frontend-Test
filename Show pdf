@@ -1,19 +1,28 @@
 import React, { useState } from 'react';
 import uploadIcon from '../assets/upload-icon.png'; // Adjust the path according to your project structure
 
-const FileUpload = (props) => {
-  const [selectedFiles, setSelectedFiles] = useState([]);
+const FileUpload = ({ name, onFileSelect }) => {
+  const [selectedFile, setSelectedFile] = useState(null);
 
   const handleFileChange = (event) => {
-    const files = Array.from(event.target.files);
-    setSelectedFiles(files);
-    props.onFileSelect(files); // Pass the files to the parent component or server
+    const file = event.target.files[0];
+    if (file && file.type === 'application/pdf') {
+      setSelectedFile(file);
+      onFileSelect(file);
+    } else {
+      alert('Only PDF files are allowed.');
+    }
+  };
+
+  const removeFile = () => {
+    setSelectedFile(null);
+    onFileSelect(null);
   };
 
   return (
     <div className="file-upload">
-      <label htmlFor="file-input" className="file-label">
-        <h3>{props.name}</h3>
+      <label htmlFor={`file-input-${name}`} className="file-label">
+        <h3>{name}</h3>
         <div className="file-input-container">
           <img src={uploadIcon} alt="Upload Icon" className="upload-icon" />
           <span className="file-input-overlay">
@@ -21,22 +30,19 @@ const FileUpload = (props) => {
           </span>
           <input
             type="file"
-            id="file-input"
+            id={`file-input-${name}`}
             className="file-input"
-            accept=".doc,.docx,.pdf,.csv,.xls,.xlsx,.ppt,.pptx,.txt"
-            multiple
+            accept="application/pdf"
             onChange={handleFileChange}
           />
-          <p className="file-support">Supports: DOC, PDF, CSV</p>
+          <p className="file-support">Supports: PDF only</p>
         </div>
       </label>
-      {selectedFiles.length > 0 && (
-        <div className="selected-files">
-          <h4>Selected Files:</h4>
+      {selectedFile && (
+        <div className="selected-file">
+          <h4>Selected File:</h4>
           <ul>
-            {selectedFiles.map((file, index) => (
-              <li key={index}>{file.name}</li>
-            ))}
+            <li>{selectedFile.name} <button onClick={removeFile}>Remove</button></li>
           </ul>
         </div>
       )}
