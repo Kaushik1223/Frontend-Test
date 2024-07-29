@@ -12,7 +12,6 @@ import './App.css';
 function App() {
   const [showModal, setShowModal] = useState(false);
   const [message, setMessage] = useState('');
-  const [loggedOff, setLoggedOff] = useState(false);
   const [showLogOffModal, setShowLogOffModal] = useState(false);
 
   const handleShowResult = async () => {
@@ -30,12 +29,10 @@ function App() {
   };
 
   const handleLogOff = () => {
-    setLoggedOff(true);
     setShowLogOffModal(true);
   };
 
   const handleLoginAgain = () => {
-    setLoggedOff(false);
     setShowLogOffModal(false);
   };
 
@@ -44,7 +41,7 @@ function App() {
   return (
     <div className="App">
       <Navbar onLogOff={handleLogOff} />
-      {!loggedOff && (
+      {!showLogOffModal && (
         <>
           <TextContainer />
           <main className="main-content">
