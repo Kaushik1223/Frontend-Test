@@ -62,7 +62,7 @@ import ReconcileButton from './components/ReconcileButton';
 import Footer from './components/Footer';
 import TextContainer from './components/TextContainer';
 import ShowResultButton from './components/ShowResultButton';
-import Modal from './components/Modal'; // Import the Modal component
+import Modal from './components/Modal'; // Ensure the path is correct
 import './App.css';
 
 function App() {
