@@ -1,16 +1,107 @@
-// ShowResultButton.jsx
+// Modal.jsx
 import React from 'react';
+import './Modal.css'; // Create a CSS file for styling
 
-const ShowResultButton = () => {
-  const showResult = () => {
-    window.open('http://localhost:5000/result', '_blank');
-  };
+const Modal = ({ show, onClose, message }) => {
+  if (!show) return null;
 
   return (
-    <button onClick={showResult} className="show-result-button">
-      Show Result
-    </button>
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h2>Result</h2>
+        <p>{message}</p>
+        <button onClick={onClose} className="close-button">Close</button>
+      </div>
+    </div>
   );
 };
 
-export default ShowResultButton;
+export default Modal;
+
+#--------------------------
+
+/* Modal.css */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  max-width: 80%;
+  text-align: center;
+}
+
+.close-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  border: none;
+  border-radius: 4px;
+  color: white;
+  cursor: pointer;
+}
+
+#---------------------++-+-
+
+// App.jsx or main component file
+import React, { useState } from 'react';
+import axios from 'axios';
+import Modal from './Modal'; // Import the Modal component
+import FileUpload from './FileUpload'; // Import your FileUpload component
+
+const App = () => {
+  const [showModal, setShowModal] = useState(false);
+  const [message, setMessage] = useState('');
+
+  const handleShowResult = async () => {
+    try {
+      const response = await axios.get('http://localhost:5000/result');
+      setMessage(response.data);
+      setShowModal(true);
+    } catch (error) {
+      console.error('Error fetching message:', error);
+    }
+  };
+
+  const closeModal = () => setShowModal(false);
+
+  return (
+    <div className="app">
+      {/* Your existing components like Navbar, FileUpload */}
+      <FileUpload name="Upload Files" />
+      <button onClick={handleShowResult} className="show-result-button">
+        Show Result
+      </button>
+
+      <Modal show={showModal} onClose={closeModal} message={message} />
+    </div>
+  );
+};
+
+export default App;
+
+#-----------------------------
+
+// server.js (Node.js backend)
+const express = require('express');
+const app = express();
+const PORT = process.env.PORT || 5000;
+
+app.get('/result', (req, res) => {
+  res.send('Hello from the backend!');
+});
+
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+});
