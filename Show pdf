@@ -54,15 +54,22 @@ export default Modal;
 
 #---------------------++-+-
 
-// App.jsx or main component file
+// App.jsx
 import React, { useState } from 'react';
 import axios from 'axios';
-import Modal from './Modal'; // Import the Modal component
-import FileUpload from './FileUpload'; // Import your FileUpload component
+import Navbar from './Navbar'; // Assuming you have a Navbar component
+import FileUpload from './FileUpload';
+import Modal from './Modal';
+import './App.css'; // Assuming you have some basic CSS for your app
 
 const App = () => {
   const [showModal, setShowModal] = useState(false);
   const [message, setMessage] = useState('');
+  const [file, setFile] = useState(null);
+
+  const handleFileChange = (selectedFile) => {
+    setFile(selectedFile);
+  };
 
   const handleShowResult = async () => {
     try {
@@ -74,17 +81,52 @@ const App = () => {
     }
   };
 
+  const handleReconcile = async () => {
+    if (!file) {
+      alert('Please upload a file first.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const response = await axios.post('http://localhost:5000/upload', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      console.log('File uploaded successfully:', response.data);
+      // Optionally, handle the response data
+    } catch (error) {
+      console.error('There was an error uploading the file:', error);
+    }
+  };
+
   const closeModal = () => setShowModal(false);
 
   return (
     <div className="app">
-      {/* Your existing components like Navbar, FileUpload */}
-      <FileUpload name="Upload Files" />
-      <button onClick={handleShowResult} className="show-result-button">
-        Show Result
-      </button>
-
+      <Navbar />
+      <div className="main-content">
+        <h2>CNF Trade Reconciliation</h2>
+        <hr style={{ borderColor: 'yellow' }} />
+        <div className="file-upload-section">
+          <FileUpload name="Upload Files" onFileChange={handleFileChange} />
+        </div>
+        <div className="button-section">
+          <button onClick={handleReconcile} className="reconcile-button">
+            Reconcile
+          </button>
+          <button onClick={handleShowResult} className="show-result-button">
+            Show Result
+          </button>
+        </div>
+      </div>
       <Modal show={showModal} onClose={closeModal} message={message} />
+      <footer>
+        &copy; 2024 Wells Fargo
+      </footer>
     </div>
   );
 };
