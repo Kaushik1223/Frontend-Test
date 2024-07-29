@@ -14,6 +14,7 @@ function App() {
   const [message, setMessage] = useState('');
   const [showLogOffModal, setShowLogOffModal] = useState(false);
 
+  // Fetch result and show modal
   const handleShowResult = async () => {
     try {
       const response = await fetch('http://localhost:5000/result');
@@ -28,14 +29,18 @@ function App() {
     }
   };
 
+  // Show LogOff modal
   const handleLogOff = () => {
     setShowLogOffModal(true);
   };
 
+  // Handle closing LogOff modal and resetting state
   const handleLoginAgain = () => {
     setShowLogOffModal(false);
+    // Additional logic to reset application state if needed
   };
 
+  // Close general modal
   const closeModal = () => setShowModal(false);
 
   return (
