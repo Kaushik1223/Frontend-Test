@@ -54,7 +54,6 @@ export default Modal;
 
 #---------------------++-+-
 
-// App.jsx
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import FileUpload from './components/FileUpload';
@@ -62,7 +61,7 @@ import ReconcileButton from './components/ReconcileButton';
 import Footer from './components/Footer';
 import TextContainer from './components/TextContainer';
 import ShowResultButton from './components/ShowResultButton';
-import Modal from './components/Modal'; // Ensure the path is correct
+import Modal from './components/Modal'; 
 import './App.css';
 
 function App() {
@@ -70,8 +69,12 @@ function App() {
   const [message, setMessage] = useState('');
 
   const handleShowResult = async () => {
+    console.log("Show Result button clicked"); // Debugging line
     try {
       const response = await fetch('http://localhost:5000/result');
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
       const data = await response.text();
       setMessage(data);
       setShowModal(true);
@@ -103,18 +106,3 @@ function App() {
 }
 
 export default App;
-
-#-----------------------------
-
-// server.js (Node.js backend)
-const express = require('express');
-const app = express();
-const PORT = process.env.PORT || 5000;
-
-app.get('/result', (req, res) => {
-  res.send('Hello from the backend!');
-});
-
-app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
