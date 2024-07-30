@@ -1,129 +1,85 @@
-// LogOffModal.jsx
-import React from 'react';
-import Modal from 'react-modal';
-import './LogOffModal.css';
-
-Modal.setAppElement('#root'); // To avoid accessibility-related warnings
-
-const LogOffModal = ({ isOpen, onClose }) => {
-  return (
-    <Modal
-      isOpen={isOpen}
-      onRequestClose={onClose}
-      className="logoff-modal"
-      overlayClassName="logoff-modal-overlay"
-    >
-      <div className="logoff-modal-content">
-        <h2>You are logged off</h2>
-        <button onClick={onClose} className="sign-in-button">Sign In</button>
-      </div>
-    </Modal>
-  );
-};
-
-export default LogOffModal;
-
-#-------------------------
-
-// App.jsx
+// FileUpload.jsx
 import React, { useState } from 'react';
-import Navbar from './components/Navbar';
-import FileUpload from './components/FileUpload';
-import ReconcileButton from './components/ReconcileButton';
-import Footer from './components/Footer';
-import TextContainer from './components/TextContainer';
-import ShowResultButton from './components/ShowResultButton';
-import LogOffModal from './components/LogOffModal';
-import './App.css';
+import uploadIcon from '../assets/upload-icon.png';
+import './FileUpload.css';
 
-function App() {
-  const [isLogOffModalOpen, setIsLogOffModalOpen] = useState(false);
+const FileUpload = ({ name }) => {
+  const [file, setFile] = useState(null);
 
-  const handleLogOff = () => {
-    setIsLogOffModalOpen(true);
+  const handleFileChange = (event) => {
+    const selectedFile = event.target.files[0];
+    if (selectedFile) {
+      if (selectedFile.type === "application/pdf" || selectedFile.type === "text/csv") {
+        setFile(selectedFile);
+      } else {
+        alert("Please select a PDF or CSV file.");
+        event.target.value = null;
+        setFile(null);
+      }
+    }
   };
 
-  const handleSignIn = () => {
-    setIsLogOffModalOpen(false);
+  const handleRemoveFile = () => {
+    setFile(null);
+    document.getElementById('file-input').value = null; // Clear the file input
+  };
+
+  const uploadFile = () => {
+    if (!file) {
+      alert("Please select a file first.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    fetch('http://your-friends-backend-server.com/upload', {
+      method: 'POST',
+      body: formData,
+    })
+      .then(response => response.json())
+      .then(data => {
+        alert(data.message);
+        setFile(null); // Clear file after successful upload
+        document.getElementById('file-input').value = null; // Clear the file input
+      })
+      .catch(error => {
+        console.error('Error uploading file:', error);
+        alert('Error uploading file');
+      });
   };
 
   return (
-    <div className="App">
-      <Navbar onLogOff={handleLogOff} />
-      <LogOffModal isOpen={isLogOffModalOpen} onClose={handleSignIn} />
-      <TextContainer />
-      <main className="main-content">
-        <div className="upload">
-          <FileUpload name="Upload Invoice" />
-          <FileUpload name="Upload Confirmations" />
+    <div className="file-upload">
+      <label htmlFor="file-input" className="file-label">
+        <h3>{name}</h3>
+        <div className="file-input-container">
+          <img src={uploadIcon} alt="Upload Icon" className="upload-icon" />
+          <span className="file-input-overlay">
+            {file ? (
+              <div className="file-details">
+                <span>{file.name}</span>
+                <button className="remove-file-button" onClick={handleRemoveFile}>X</button>
+              </div>
+            ) : (
+              <>
+                Drag & Drop or <span className="browse">Browse</span>
+              </>
+            )}
+          </span>
+          <input
+            type="file"
+            id="file-input"
+            className="file-input"
+            accept=".pdf,.csv"
+            onChange={handleFileChange}
+          />
+          <p className="file-support">Supports: PDF, CSV</p>
         </div>
-        <ReconcileButton />
-      </main>
-      <div className='result-wrapper'>
-        <ShowResultButton />
-      </div>
-      <Footer />
+      </label>
+      <button onClick={uploadFile} className="upload-button">Upload</button>
     </div>
   );
-}
-
-export default App;
-
-#---------------------------
-
-// Navbar.jsx
-import React from 'react';
-import logo from '../assets/logo.png';
-import './Navbar.css';
-
-const Navbar = ({ onLogOff }) => {
-  return (
-    <nav className="navbar">
-      <img src={logo} alt="Logo" className="navbar-logo" onClick={onLogOff} />
-      <div className="navbar-title">Wells Fargo</div>
-    </nav>
-  );
 };
 
-export default Navbar;
-
-#--------------------------
-
-/* LogOffModal.css */
-.logoff-modal-overlay {
-  background-color: rgba(0, 0, 0, 0.75);
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.logoff-modal {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  max-width: 400px;
-  width: 100%;
-  text-align: center;
-  outline: none;
-}
-
-.logoff-modal-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.sign-in-button {
-  margin-top: 20px;
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
+export default FileUpload;
