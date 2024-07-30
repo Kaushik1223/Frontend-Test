@@ -1,3 +1,30 @@
+// LogOffModal.jsx
+import React from 'react';
+import Modal from 'react-modal';
+import './LogOffModal.css';
+
+Modal.setAppElement('#root'); // To avoid accessibility-related warnings
+
+const LogOffModal = ({ isOpen, onClose }) => {
+  return (
+    <Modal
+      isOpen={isOpen}
+      onRequestClose={onClose}
+      className="logoff-modal"
+      overlayClassName="logoff-modal-overlay"
+    >
+      <div className="logoff-modal-content">
+        <h2>You are logged off</h2>
+        <button onClick={onClose} className="sign-in-button">Sign In</button>
+      </div>
+    </Modal>
+  );
+};
+
+export default LogOffModal;
+
+#-------------------------
+
 // App.jsx
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
@@ -6,33 +33,24 @@ import ReconcileButton from './components/ReconcileButton';
 import Footer from './components/Footer';
 import TextContainer from './components/TextContainer';
 import ShowResultButton from './components/ShowResultButton';
-import Modal from './components/Modal';
+import LogOffModal from './components/LogOffModal';
 import './App.css';
 
 function App() {
-  const [showModal, setShowModal] = useState(false);
-  const [message, setMessage] = useState('');
+  const [isLogOffModalOpen, setIsLogOffModalOpen] = useState(false);
 
-  const handleShowResult = async () => {
-    console.log("Show Result button clicked"); // Debugging log
-    try {
-      const response = await fetch('http://localhost:5000/result');
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const data = await response.text();
-      setMessage(data);
-      setShowModal(true);
-    } catch (error) {
-      console.error('Error fetching message:', error);
-    }
+  const handleLogOff = () => {
+    setIsLogOffModalOpen(true);
   };
 
-  const closeModal = () => setShowModal(false);
+  const handleSignIn = () => {
+    setIsLogOffModalOpen(false);
+  };
 
   return (
     <div className="App">
-      <Navbar />
+      <Navbar onLogOff={handleLogOff} />
+      <LogOffModal isOpen={isLogOffModalOpen} onClose={handleSignIn} />
       <TextContainer />
       <main className="main-content">
         <div className="upload">
@@ -42,12 +60,70 @@ function App() {
         <ReconcileButton />
       </main>
       <div className='result-wrapper'>
-        <ShowResultButton onClick={handleShowResult} />
+        <ShowResultButton />
       </div>
       <Footer />
-      <Modal show={showModal} onClose={closeModal} message={message} />
     </div>
   );
 }
 
 export default App;
+
+#---------------------------
+
+// Navbar.jsx
+import React from 'react';
+import logo from '../assets/logo.png';
+import './Navbar.css';
+
+const Navbar = ({ onLogOff }) => {
+  return (
+    <nav className="navbar">
+      <img src={logo} alt="Logo" className="navbar-logo" onClick={onLogOff} />
+      <div className="navbar-title">Wells Fargo</div>
+    </nav>
+  );
+};
+
+export default Navbar;
+
+#--------------------------
+
+/* LogOffModal.css */
+.logoff-modal-overlay {
+  background-color: rgba(0, 0, 0, 0.75);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.logoff-modal {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  outline: none;
+}
+
+.logoff-modal-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sign-in-button {
+  margin-top: 20px;
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
