@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import uploadIcon from '../assets/upload-icon.png';
 import './FileUpload.css';
 
-const FileUpload = ({ name }) => {
+const FileUpload = ({ name, onFileChange }) => {
   const [file, setFile] = useState(null);
 
   const handleFileChange = (event) => {
@@ -11,6 +11,7 @@ const FileUpload = ({ name }) => {
     if (selectedFile) {
       if (selectedFile.type === "application/pdf" || selectedFile.type === "text/csv") {
         setFile(selectedFile);
+        onFileChange(selectedFile); // Notify parent component of file change
       } else {
         alert("Please select a PDF or CSV file.");
         event.target.value = null;
@@ -21,37 +22,13 @@ const FileUpload = ({ name }) => {
 
   const handleRemoveFile = () => {
     setFile(null);
-    document.getElementById('file-input').value = null; // Clear the file input
-  };
-
-  const uploadFile = () => {
-    if (!file) {
-      alert("Please select a file first.");
-      return;
-    }
-
-    const formData = new FormData();
-    formData.append('file', file);
-
-    fetch('http://your-friends-backend-server.com/upload', {
-      method: 'POST',
-      body: formData,
-    })
-      .then(response => response.json())
-      .then(data => {
-        alert(data.message);
-        setFile(null); // Clear file after successful upload
-        document.getElementById('file-input').value = null; // Clear the file input
-      })
-      .catch(error => {
-        console.error('Error uploading file:', error);
-        alert('Error uploading file');
-      });
+    onFileChange(null); // Notify parent component of file removal
+    document.getElementById(`${name}-file-input`).value = null; // Clear the file input
   };
 
   return (
     <div className="file-upload">
-      <label htmlFor="file-input" className="file-label">
+      <label htmlFor={`${name}-file-input`} className="file-label">
         <h3>{name}</h3>
         <div className="file-input-container">
           <img src={uploadIcon} alt="Upload Icon" className="upload-icon" />
@@ -69,7 +46,7 @@ const FileUpload = ({ name }) => {
           </span>
           <input
             type="file"
-            id="file-input"
+            id={`${name}-file-input`}
             className="file-input"
             accept=".pdf,.csv"
             onChange={handleFileChange}
@@ -77,7 +54,6 @@ const FileUpload = ({ name }) => {
           <p className="file-support">Supports: PDF, CSV</p>
         </div>
       </label>
-      <button onClick={uploadFile} className="upload-button">Upload</button>
     </div>
   );
 };
