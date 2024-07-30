@@ -6,6 +6,7 @@ const ProgressBar = ({ progress }) => {
   return (
     <div className="progress-bar-container">
       <div className="progress-bar" style={{ width: `${progress}%` }}></div>
+      {progress < 100 && <p className="loading-text">Loading...</p>}
     </div>
   );
 };
@@ -22,6 +23,7 @@ export default ProgressBar;
   border-radius: 10px;
   overflow: hidden;
   margin-top: 20px;
+  position: relative;
 }
 
 .progress-bar {
@@ -30,6 +32,15 @@ export default ProgressBar;
   width: 0;
   transition: width 0.5s ease-in-out;
   border-radius: 10px;
+}
+
+.loading-text {
+  position: absolute;
+  width: 100%;
+  text-align: center;
+  top: 25px;
+  font-size: 14px;
+  color: #333;
 }
 
 #----------6-6---------------
@@ -60,7 +71,7 @@ function App() {
   };
 
   const handleReconcile = () => {
-    // Dummy progress increment for demonstration
+    setProgress(0); // Reset progress
     let progressValue = 0;
     const interval = setInterval(() => {
       progressValue += 10;
@@ -83,7 +94,7 @@ function App() {
           <FileUpload name="Upload Confirmations" />
         </div>
         <ReconcileButton onClick={handleReconcile} />
-        <ProgressBar progress={progress} />
+        {progress > 0 && <ProgressBar progress={progress} />}
       </main>
       <div className='result-wrapper'>
         <ShowResultButton />
