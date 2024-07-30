@@ -1,3 +1,4 @@
+// App.jsx
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import FileUpload from './components/FileUpload';
@@ -6,16 +7,14 @@ import Footer from './components/Footer';
 import TextContainer from './components/TextContainer';
 import ShowResultButton from './components/ShowResultButton';
 import Modal from './components/Modal';
-import LogOffModal from './components/LogOffModal';
 import './App.css';
 
 function App() {
   const [showModal, setShowModal] = useState(false);
   const [message, setMessage] = useState('');
-  const [showLogOffModal, setShowLogOffModal] = useState(false);
 
-  // Fetch result and show modal
   const handleShowResult = async () => {
+    console.log("Show Result button clicked"); // Debugging log
     try {
       const response = await fetch('http://localhost:5000/result');
       if (!response.ok) {
@@ -29,41 +28,24 @@ function App() {
     }
   };
 
-  // Show LogOff modal
-  const handleLogOff = () => {
-    setShowLogOffModal(true);
-  };
-
-  // Handle closing LogOff modal and resetting state
-  const handleLoginAgain = () => {
-    setShowLogOffModal(false);
-    // Additional logic to reset application state if needed
-  };
-
-  // Close general modal
   const closeModal = () => setShowModal(false);
 
   return (
     <div className="App">
-      <Navbar onLogOff={handleLogOff} />
-      {!showLogOffModal && (
-        <>
-          <TextContainer />
-          <main className="main-content">
-            <div className="upload">
-              <FileUpload name="Upload Invoice" />
-              <FileUpload name="Upload Confirmations" />
-            </div>
-            <ReconcileButton />
-          </main>
-          <div className='result-wrapper'>
-            <ShowResultButton onClick={handleShowResult} />
-          </div>
-        </>
-      )}
+      <Navbar />
+      <TextContainer />
+      <main className="main-content">
+        <div className="upload">
+          <FileUpload name="Upload Invoice" />
+          <FileUpload name="Upload Confirmations" />
+        </div>
+        <ReconcileButton />
+      </main>
+      <div className='result-wrapper'>
+        <ShowResultButton onClick={handleShowResult} />
+      </div>
       <Footer />
       <Modal show={showModal} onClose={closeModal} message={message} />
-      <LogOffModal show={showLogOffModal} onLoginAgain={handleLoginAgain} />
     </div>
   );
 }
