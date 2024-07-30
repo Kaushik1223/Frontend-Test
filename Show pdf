@@ -6,14 +6,20 @@ const ProgressBar = ({ progress }) => {
   return (
     <div className="progress-bar-container">
       <div className="progress-bar" style={{ width: `${progress}%` }}></div>
-      {progress < 100 && <p className="loading-text">Loading...</p>}
+      {progress < 100 && (
+        <>
+          <p className="loading-text">Reconciliation in progress</p>
+          <p className="percentage-text">{progress}%</p>
+        </>
+      )}
+      {progress === 100 && <p className="loading-text">Reconciliation Complete</p>}
     </div>
   );
 };
 
 export default ProgressBar;
 
-#----------------------
+#-----_----------------------+--
 
 /* ProgressBar.css */
 .progress-bar-container {
@@ -34,74 +40,20 @@ export default ProgressBar;
   border-radius: 10px;
 }
 
-.loading-text {
+.loading-text,
+.percentage-text {
   position: absolute;
   width: 100%;
   text-align: center;
-  top: 25px;
   font-size: 14px;
   color: #333;
 }
 
-#----------6-6---------------
-
-
-// App.jsx
-import React, { useState } from 'react';
-import Navbar from './components/Navbar';
-import FileUpload from './components/FileUpload';
-import ReconcileButton from './components/ReconcileButton';
-import Footer from './components/Footer';
-import TextContainer from './components/TextContainer';
-import ShowResultButton from './components/ShowResultButton';
-import LogOffModal from './components/LogOffModal';
-import ProgressBar from './components/ProgressBar';
-import './App.css';
-
-function App() {
-  const [isLogOffModalOpen, setIsLogOffModalOpen] = useState(false);
-  const [progress, setProgress] = useState(0);
-
-  const handleLogOff = () => {
-    setIsLogOffModalOpen(true);
-  };
-
-  const handleSignIn = () => {
-    setIsLogOffModalOpen(false);
-  };
-
-  const handleReconcile = () => {
-    setProgress(0); // Reset progress
-    let progressValue = 0;
-    const interval = setInterval(() => {
-      progressValue += 10;
-      if (progressValue <= 100) {
-        setProgress(progressValue);
-      } else {
-        clearInterval(interval);
-      }
-    }, 500);
-  };
-
-  return (
-    <div className="App">
-      <Navbar onLogOff={handleLogOff} />
-      <LogOffModal isOpen={isLogOffModalOpen} onClose={handleSignIn} />
-      <TextContainer />
-      <main className="main-content">
-        <div className="upload">
-          <FileUpload name="Upload Invoice" />
-          <FileUpload name="Upload Confirmations" />
-        </div>
-        <ReconcileButton onClick={handleReconcile} />
-        {progress > 0 && <ProgressBar progress={progress} />}
-      </main>
-      <div className='result-wrapper'>
-        <ShowResultButton />
-      </div>
-      <Footer />
-    </div>
-  );
+.loading-text {
+  top: 25px;
 }
 
-export default App;
+.percentage-text {
+  top: 5px;
+  font-weight: bold;
+}
