@@ -16,10 +16,12 @@ function App() {
   const [files, setFiles] = useState([]);
   const [progress, setProgress] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
+  const [isCancelVisible, setIsCancelVisible] = useState(false); // State to control cancel button visibility
 
   useEffect(() => {
     if (progress === 100 && intervalId) {
       clearInterval(intervalId);
+      setIsCancelVisible(false); // Hide cancel button when progress reaches 100%
     }
   }, [progress, intervalId]);
 
@@ -57,6 +59,7 @@ function App() {
         setLogs(prevLogs => [...prevLogs, "Files sent successfully."]);
         const id = setInterval(fetchProgress, 1000);
         setIntervalId(id);
+        setIsCancelVisible(true); // Show cancel button when reconciliation starts
       } else {
         setLogs(prevLogs => [...prevLogs, "Failed to start reconciliation."]);
       }
@@ -73,6 +76,7 @@ function App() {
     }
     setLogs(prevLogs => [...prevLogs, "Reconciliation process cancelled."]);
     setProgress(0);
+    setIsCancelVisible(false); // Hide cancel button when cancelled
 
     try {
       const response = await fetch('http://localhost:3000/cancel-process', { method: 'POST' });
@@ -98,7 +102,7 @@ function App() {
         </div>
         <ProgressLog logs={logs} />
         <ReconcileButton onClick={handleReconcile} />
-        <button onClick={handleCancel}>Cancel</button>
+        {isCancelVisible && <button onClick={handleCancel}>Cancel</button>}
         <ShowResultButton onClick={handleShowResult} />
       </main>
       <Modal show={isShowResultModalOpen} onClose={handleCloseModal} message={resultContent} />
