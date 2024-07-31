@@ -1,4 +1,34 @@
-// App.jsx
+import React from 'react';
+
+const Modal = ({ show, onClose, message }) => {
+  if (!show) return null;
+
+  const handleExport = () => {
+    const element = document.createElement("a");
+    const file = new Blob([message], { type: 'text/plain' });
+    element.href = URL.createObjectURL(file);
+    element.download = "result.txt";
+    document.body.appendChild(element); // Required for this to work in Firefox
+    element.click();
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h2>Result</h2>
+        <p>{message}</p>
+        <div className="modal-buttons">
+          <button onClick={handleExport} className="export-button">Export to .txt</button>
+          <button onClick={onClose} className="close-button">Close</button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default Modal;
+---------------------------
+
 import React, { useState } from 'react';
 import Navbar from './components/Navbar';
 import FileUpload from './components/FileUpload';
@@ -6,58 +36,34 @@ import ReconcileButton from './components/ReconcileButton';
 import Footer from './components/Footer';
 import TextContainer from './components/TextContainer';
 import ShowResultButton from './components/ShowResultButton';
-import LogOffModal from './components/LogOffModal';
-import ProgressBar from './components/ProgressBar';
+import Modal from './components/Modal';
 import './App.css';
 
 function App() {
-  const [isLogOffModalOpen, setIsLogOffModalOpen] = useState(false);
-  const [progress, setProgress] = useState(0);
-  const [reconciliationCompleted, setReconciliationCompleted] = useState(false);
+  const [isShowResultModalOpen, setIsShowResultModalOpen] = useState(false);
+  const [resultContent, setResultContent] = useState("Reconciliation result goes here..."); // Placeholder content
 
-  const handleLogOff = () => {
-    setIsLogOffModalOpen(true);
+  const handleShowResult = () => {
+    setIsShowResultModalOpen(true);
   };
 
-  const handleSignIn = () => {
-    setIsLogOffModalOpen(false);
-  };
-
-  const handleReconcile = () => {
-    setProgress(0); // Reset progress
-    setReconciliationCompleted(false); // Reset reconciliation status
-    let progressValue = 0;
-    const interval = setInterval(() => {
-      progressValue += 10;
-      if (progressValue <= 100) {
-        setProgress(progressValue);
-      } else {
-        clearInterval(interval);
-        setReconciliationCompleted(true); // Set reconciliation status to complete
-      }
-    }, 500); // Adjust this interval and increment as needed
+  const handleCloseModal = () => {
+    setIsShowResultModalOpen(false);
   };
 
   return (
     <div className="App">
-      <Navbar onLogOff={handleLogOff} />
-      <LogOffModal isOpen={isLogOffModalOpen} onClose={handleSignIn} />
+      <Navbar />
       <TextContainer />
       <main className="main-content">
         <div className="upload">
           <FileUpload name="Upload Invoice" />
           <FileUpload name="Upload Confirmations" />
         </div>
-        {!reconciliationCompleted ? (
-          <ReconcileButton onClick={handleReconcile} />
-        ) : (
-          <p className="completion-message">Reconciliation completed</p>
-        )}
-        {progress > 0 && <ProgressBar progress={progress} />}
+        <ReconcileButton />
+        <ShowResultButton onClick={handleShowResult} />
       </main>
-      <div className='result-wrapper'>
-        <ShowResultButton />
-      </div>
+      <Modal show={isShowResultModalOpen} onClose={handleCloseModal} message={resultContent} />
       <Footer />
     </div>
   );
