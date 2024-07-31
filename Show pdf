@@ -2,12 +2,12 @@
 import React from 'react';
 import './ProgressLog.css';
 
-const ProgressLog = ({ logs }) => {
+const ProgressLog = ({ logs = [] }) => { // Default to an empty array if logs is undefined
   return (
     <div className="progress-log">
       <textarea
         className="progress-log-textarea"
-        value={logs.join('\n')}
+        value={logs.length ? logs.join('\n') : 'No logs available'}
         readOnly
       />
     </div>
@@ -15,77 +15,3 @@ const ProgressLog = ({ logs }) => {
 };
 
 export default ProgressLog;
-
-###########
-
-/* src/components/ProgressLog.css */
-.progress-log {
-  margin-top: 20px;
-  max-width: 400px;
-}
-
-.progress-log-textarea {
-  width: 100%;
-  height: 200px;
-  resize: none;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 10px;
-  font-family: Arial, sans-serif;
-  font-size: 14px;
-  line-height: 1.5;
-  overflow-y: auto;
-}
-
-#################
-
-import React, { useState } from 'react';
-import Navbar from './components/Navbar';
-import FileUpload from './components/FileUpload';
-import ReconcileButton from './components/ReconcileButton';
-import Footer from './components/Footer';
-import TextContainer from './components/TextContainer';
-import ShowResultButton from './components/ShowResultButton';
-import Modal from './components/Modal';
-import ProgressLog from './components/ProgressLog';
-import './App.css';
-
-function App() {
-  const [isShowResultModalOpen, setIsShowResultModalOpen] = useState(false);
-  const [resultContent, setResultContent] = useState("Reconciliation result goes here..."); // Placeholder content
-  const [logs, setLogs] = useState([
-    "10% completed...",
-    "20% completed...",
-    "30% completed...",
-    "40% completed...",
-    "Reconciliation is done now."
-  ]);
-
-  const handleShowResult = () => {
-    setIsShowResultModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsShowResultModalOpen(false);
-  };
-
-  return (
-    <div className="App">
-      <Navbar />
-      <TextContainer />
-      <main className="main-content">
-        <div className="upload">
-          <FileUpload name="Upload Invoice" />
-          <FileUpload name="Upload Confirmations" />
-          <ProgressLog logs={logs} />
-        </div>
-        <ReconcileButton />
-        <ShowResultButton onClick={handleShowResult} />
-      </main>
-      <Modal show={isShowResultModalOpen} onClose={handleCloseModal} message={resultContent} />
-      <Footer />
-    </div>
-  );
-}
-
-export default App;
