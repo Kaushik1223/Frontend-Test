@@ -1,17 +1,110 @@
-// src/components/ProgressLog.jsx
-import React from 'react';
-import './ProgressLog.css';
+import React, { useState, useEffect } from 'react';
+import Navbar from './components/Navbar';
+import FileUpload from './components/FileUpload';
+import ReconcileButton from './components/ReconcileButton';
+import Footer from './components/Footer';
+import TextContainer from './components/TextContainer';
+import ShowResultButton from './components/ShowResultButton';
+import Modal from './components/Modal';
+import ProgressLog from './components/ProgressLog';
+import './App.css';
 
-const ProgressLog = ({ logs = [] }) => { // Default to an empty array if logs is undefined
+function App() {
+  const [isShowResultModalOpen, setIsShowResultModalOpen] = useState(false);
+  const [resultContent, setResultContent] = useState("Reconciliation result goes here...");
+  const [logs, setLogs] = useState([]);
+  const [files, setFiles] = useState([]);
+  const [progress, setProgress] = useState(0);
+  const [intervalId, setIntervalId] = useState(null);
+
+  useEffect(() => {
+    if (progress === 100 && intervalId) {
+      clearInterval(intervalId);
+    }
+  }, [progress, intervalId]);
+
+  const handleShowResult = () => {
+    setIsShowResultModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsShowResultModalOpen(false);
+  };
+
+  const fetchProgress = async () => {
+    try {
+      const response = await fetch('http://localhost:3000/progress');
+      const data = await response.json();
+      setProgress(data.progress);
+      setLogs(prevLogs => [...prevLogs, `${data.progress}% completed...`]);
+    } catch (error) {
+      console.error("Error fetching progress:", error);
+    }
+  };
+
+  const handleReconcile = async () => {
+    setLogs(prevLogs => [...prevLogs, "Reconciliation started..."]);
+
+    const formData = new FormData();
+    files.forEach(file => formData.append('files', file));
+    
+    try {
+      const response = await fetch('http://localhost:3000/start-process', {
+        method: 'POST',
+        body: formData,
+      });
+      if (response.ok) {
+        setLogs(prevLogs => [...prevLogs, "Files sent successfully."]);
+        const id = setInterval(fetchProgress, 1000);
+        setIntervalId(id);
+      } else {
+        setLogs(prevLogs => [...prevLogs, "Failed to start reconciliation."]);
+      }
+    } catch (error) {
+      console.error("Error during reconciliation:", error);
+      setLogs(prevLogs => [...prevLogs, "Error occurred during reconciliation."]);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (intervalId) {
+      clearInterval(intervalId);
+      setIntervalId(null);
+    }
+    setLogs(prevLogs => [...prevLogs, "Reconciliation process cancelled."]);
+    setProgress(0);
+
+    try {
+      const response = await fetch('http://localhost:3000/cancel-process', { method: 'POST' });
+      if (response.ok) {
+        setLogs(prevLogs => [...prevLogs, "Cancellation successful."]);
+      } else {
+        setLogs(prevLogs => [...prevLogs, "Cancellation failed."]);
+      }
+    } catch (error) {
+      console.error("Error during cancellation:", error);
+      setLogs(prevLogs => [...prevLogs, "Error occurred during cancellation."]);
+    }
+  };
+
   return (
-    <div className="progress-log">
-      <textarea
-        className="progress-log-textarea"
-        value={logs.length ? logs.join('\n') : 'No logs available'}
-        readOnly
-      />
+    <div className="App">
+      <Navbar />
+      <TextContainer />
+      <main className="main-content">
+        <div className="upload">
+          <FileUpload name="Upload Invoice" onFilesSelected={setFiles} />
+          <FileUpload name="Upload Confirmations" onFilesSelected={setFiles} />
+        </div>
+        <ProgressLog logs={logs} />
+        <ReconcileButton onClick={handleReconcile} />
+        <button onClick={handleCancel}>Cancel</button>
+        <ShowResultButton onClick={handleShowResult} />
+      </main>
+      <Modal show={isShowResultModalOpen} onClose={handleCloseModal} message={resultContent} />
+      <Footer />
     </div>
   );
-};
+}
 
-export default ProgressLog;
+export default App;
