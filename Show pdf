@@ -1,41 +1,62 @@
-import React from 'react';
-import { FaDownload } from 'react-icons/fa';
+.progress-log {
+  border: 1px solid #ccc;
+  padding: 10px;
+  margin-top: 20px;
+  height: 200px;
+  overflow-y: auto;
+}
 
-const ProgressLog = ({ logs }) => {
-  const downloadLogs = () => {
-    const logContent = logs.map(event => `${event.progress}: ${event.status}`).join('\n');
-    const blob = new Blob([logContent], { type: 'text/plain;charset=utf-8' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'progress_log.txt';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
+.log-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
 
-  return (
-    <div className="progress-log">
-      <div className="log-header">
-        <h3>Progress Log</h3>
-        <button className="download-button" onClick={downloadLogs}>
-          <FaDownload /> Download
-        </button>
-      </div>
-      <div className="progress-log-textarea">
-        {logs && logs.length > 0 ? (
-          <ul>
-            {logs.map((event, index) => (
-              <li key={index}>
-                {`${event.progress}: ${event.status}`}
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p>No data available</p>
-        )}
-      </div>
-    </div>
-  );
-};
+.download-button {
+  background-color: #4CAF50; /* Green */
+  border: none;
+  color: white;
+  padding: 5px 10px;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+  font-size: 16px;
+  margin: 4px 2px;
+  cursor: pointer;
+  position: relative;
+}
 
-export default ProgressLog;
+.download-button:hover {
+  background-color: #45a049;
+}
+
+.download-button:hover::after {
+  content: attr(title);
+  position: absolute;
+  top: -25px; /* Adjust as needed */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: white;
+  padding: 5px;
+  border-radius: 5px;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.progress-log-textarea {
+  height: 150px; /* Adjust height as needed */
+  overflow-y: scroll;
+  padding: 10px;
+  border-top: 1px solid #ccc;
+  margin-top: 10px;
+}
+
+.progress-log ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.progress-log li {
+  margin: 5px 0;
+}
