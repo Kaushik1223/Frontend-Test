@@ -1,62 +1,78 @@
-.progress-log {
-  border: 1px solid #ccc;
-  padding: 10px;
-  margin-top: 20px;
-  height: 200px;
-  overflow-y: auto;
-}
-
-.log-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.download-button {
-  background-color: #4CAF50; /* Green */
-  border: none;
-  color: white;
-  padding: 5px 10px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin: 4px 2px;
-  cursor: pointer;
-  position: relative;
-}
-
-.download-button:hover {
-  background-color: #45a049;
-}
-
-.download-button:hover::after {
-  content: attr(title);
-  position: absolute;
-  top: -25px; /* Adjust as needed */
-  left: 50%;
-  transform: translateX(-50%);
-  background-color: #333;
-  color: white;
-  padding: 5px;
-  border-radius: 5px;
-  font-size: 12px;
-  white-space: nowrap;
-}
-
-.progress-log-textarea {
-  height: 150px; /* Adjust height as needed */
-  overflow-y: scroll;
-  padding: 10px;
-  border-top: 1px solid #ccc;
-  margin-top: 10px;
-}
-
-.progress-log ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-.progress-log li {
-  margin: 5px 0;
-}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Template</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="invoice-container">
+        <header>
+            <div class="logo">
+                <img src="wells-fargo-logo.png" alt="Wells Fargo Logo">
+            </div>
+            <div class="company-details">
+                <p>Wells Fargo Securities, LLC</p>
+                <p>PO Box 123</p>
+                <p>Sioux Falls, SD 57117-6120</p>
+                <p>1-800-643-3751</p>
+            </div>
+        </header>
+        <section class="invoice-details">
+            <div class="left">
+                <p><strong>TO:</strong></p>
+                <p>[Client Name]</p>
+                <p>[Client Address Line 1]</p>
+                <p>[Client Address Line 2]</p>
+            </div>
+            <div class="right">
+                <p>Account Number: <span>[Account Number]</span></p>
+                <p>Your Representative: <span>[Representative Name]</span></p>
+                <p>Phone: <span>[Phone Number]</span></p>
+                <p>Page 1 of 1</p>
+                <p>Settled Trade</p>
+            </div>
+        </section>
+        <section class="confirmation">
+            <h2>CONFIRMATION</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Trade Date</th>
+                        <th>Settle Date</th>
+                        <th>Principal</th>
+                        <th>Price</th>
+                        <th>Yield</th>
+                        <th>Accrued Interest</th>
+                        <th>Settlement Amount</th>
+                        <th>Trade ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>[Trade Date]</td>
+                        <td>[Settle Date]</td>
+                        <td>[Principal]</td>
+                        <td>[Price]</td>
+                        <td>[Yield]</td>
+                        <td>[Accrued Interest]</td>
+                        <td>[Settlement Amount]</td>
+                        <td>[Trade ID]</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="other-information">
+            <p><strong>OTHER INFORMATION</strong></p>
+            <p>Interest Payment Frequency: <span>[Frequency]</span></p>
+            <p>At Price: <span>[Price]</span></p>
+        </section>
+        <footer>
+            <p>Wells Fargo Securities, LLC Member FINRA & SIPC</p>
+            <p>Investments NOT FDIC Insured / NO Bank Guarantee / MAY Lose Value</p>
+            <p>Transactions subject to the terms and conditions of the written agreement between parties.</p>
+        </footer>
+    </div>
+</body>
+</html>
