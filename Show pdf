@@ -1,3 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Template</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="invoice-container">
+        <header>
+            <div class="logo">
+                <img src="wells-fargo-logo.png" alt="Wells Fargo Logo">
+            </div>
+            <div class="company-details">
+                <p>Wells Fargo Securities, LLC</p>
+                <p>PO Box 123</p>
+                <p>Sioux Falls, SD 57117-6120</p>
+                <p>1-800-643-3751</p>
+            </div>
+        </header>
+        <section class="invoice-details">
+            <div class="left">
+                <p><strong>TO:</strong></p>
+                <p>[Client Name]</p>
+                <p>[Client Address Line 1]</p>
+                <p>[Client Address Line 2]</p>
+            </div>
+            <div class="right">
+                <p>Account Number: <span>[Account Number]</span></p>
+                <p>Your Representative: <span>[Representative Name]</span></p>
+                <p>Phone: <span>[Phone Number]</span></p>
+                <p>Page 1 of 1</p>
+                <p>Settled Trade</p>
+            </div>
+        </section>
+        <section class="confirmation">
+            <h2>CONFIRMATION</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Trade Date</th>
+                        <th>Settle Date</th>
+                        <th>Principal</th>
+                        <th>Price</th>
+                        <th>Yield</th>
+                        <th>Accrued Interest</th>
+                        <th>Settlement Amount</th>
+                        <th>Trade ID</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>[Trade Date]</td>
+                        <td>[Settle Date]</td>
+                        <td>[Principal]</td>
+                        <td>[Price]</td>
+                        <td>[Yield]</td>
+                        <td>[Accrued Interest]</td>
+                        <td>[Settlement Amount]</td>
+                        <td>[Trade ID]</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+        <section class="other-information">
+            <p><strong>OTHER INFORMATION</strong></p>
+            <p>Interest Payment Frequency: <span>[Frequency]</span></p>
+            <p>At Price: <span>[Price]</span></p>
+        </section>
+        <footer>
+            <p>Wells Fargo Securities, LLC Member FINRA & SIPC</p>
+            <p>Investments NOT FDIC Insured / NO Bank Guarantee / MAY Lose Value</p>
+            <p>Transactions subject to the terms and conditions of the written agreement between parties.</p>
+        </footer>
+    </div>
+</body>
+</html>
+
+#_--------&&&&&&&&&&&&&----------++
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
@@ -17,7 +98,6 @@ header {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 2px solid #333;
     padding-bottom: 10px;
 }
 
@@ -33,6 +113,8 @@ header {
     display: flex;
     justify-content: space-between;
     margin-top: 20px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 10px;
 }
 
 .invoice-details .left,
