@@ -7,35 +7,32 @@ import TextContainer from './components/TextContainer';
 import ShowResultButton from './components/ShowResultButton';
 import Modal from './components/Modal';
 import ProgressLog from './components/ProgressLog';
+import config from './config.json';
 import './App.css';
 
 function App() {
-  const [isShowResultModalOpen, setIsShowResultModalOpen] = useState(false);
-  const [resultContent, setResultContent] = useState("Reconciliation result goes here...");
-  const [logs, setLogs] = useState([]);
   const [files, setFiles] = useState([]);
   const [progress, setProgress] = useState(0);
   const [intervalId, setIntervalId] = useState(null);
-  const [isCancelVisible, setIsCancelVisible] = useState(false); // State to control cancel button visibility
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalMessage, setModalMessage] = useState('');
+  const [isCancelVisible, setIsCancelVisible] = useState(false);
+  const [isReconcileVisible, setIsReconcileVisible] = useState(true); // State for Reconcile button visibility
+  const [logs, setLogs] = useState([]);
 
   useEffect(() => {
-    if (progress === 100 && intervalId) {
+    if (progress === 100) {
       clearInterval(intervalId);
-      setIsCancelVisible(false); // Hide cancel button when progress reaches 100%
+      setIntervalId(null);
+      setIsCancelVisible(false); // Hide cancel button
+      setIsReconcileVisible(true); // Show reconcile button
+      setLogs(prevLogs => [...prevLogs, "Reconciliation completed."]);
     }
   }, [progress, intervalId]);
 
-  const handleShowResult = () => {
-    setIsShowResultModalOpen(true);
-  };
-
-  const handleCloseModal = () => {
-    setIsShowResultModalOpen(false);
-  };
-
   const fetchProgress = async () => {
     try {
-      const response = await fetch('http://localhost:3000/progress');
+      const response = await fetch(`${config.apiBaseUrl}${config.routes.progress}`);
       const data = await response.json();
       setProgress(data.progress);
       setLogs(prevLogs => [...prevLogs, `${data.progress}% completed...`]);
@@ -46,12 +43,12 @@ function App() {
 
   const handleReconcile = async () => {
     setLogs(prevLogs => [...prevLogs, "Reconciliation started..."]);
-
+    setProgress(0); // Reset progress
     const formData = new FormData();
     files.forEach(file => formData.append('files', file));
-    
+
     try {
-      const response = await fetch('http://localhost:3000/start-process', {
+      const response = await fetch(`${config.apiBaseUrl}${config.routes.startProcess}`, {
         method: 'POST',
         body: formData,
       });
@@ -59,7 +56,8 @@ function App() {
         setLogs(prevLogs => [...prevLogs, "Files sent successfully."]);
         const id = setInterval(fetchProgress, 1000);
         setIntervalId(id);
-        setIsCancelVisible(true); // Show cancel button when reconciliation starts
+        setIsCancelVisible(true); // Show cancel button
+        setIsReconcileVisible(false); // Hide reconcile button
       } else {
         setLogs(prevLogs => [...prevLogs, "Failed to start reconciliation."]);
       }
@@ -76,12 +74,13 @@ function App() {
     }
     setLogs(prevLogs => [...prevLogs, "Reconciliation process cancelled."]);
     setProgress(0);
-    setIsCancelVisible(false); // Hide cancel button when cancelled
+    setIsCancelVisible(false);
 
     try {
-      const response = await fetch('http://localhost:3000/cancel-process', { method: 'POST' });
+      const response = await fetch(`${config.apiBaseUrl}${config.routes.cancelProcess}`, { method: 'POST' });
       if (response.ok) {
         setLogs(prevLogs => [...prevLogs, "Cancellation successful."]);
+        setIsReconcileVisible(true); // Show reconcile button on cancellation
       } else {
         setLogs(prevLogs => [...prevLogs, "Cancellation failed."]);
       }
@@ -91,22 +90,33 @@ function App() {
     }
   };
 
+  const handleShowResult = () => {
+    setIsModalOpen(true);
+    setModalMessage("Hello message from backend (or any other dynamic content)");
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+  };
+
   return (
     <div className="App">
       <Navbar />
       <TextContainer />
       <main className="main-content">
         <div className="upload">
-          <FileUpload name="Upload Invoice" onFilesSelected={setFiles} />
-          <FileUpload name="Upload Confirmations" onFilesSelected={setFiles} />
+          <FileUpload name="Upload Invoice" files={files} setFiles={setFiles} />
+          <FileUpload name="Upload Confirmations" files={files} setFiles={setFiles} />
         </div>
+        {isReconcileVisible && <ReconcileButton onClick={handleReconcile} />}
+        {isCancelVisible && <button className="cancel-button" onClick={handleCancel}>Cancel</button>}
         <ProgressLog logs={logs} />
-        <ReconcileButton onClick={handleReconcile} />
-        {isCancelVisible && <button onClick={handleCancel}>Cancel</button>}
-        <ShowResultButton onClick={handleShowResult} />
       </main>
-      <Modal show={isShowResultModalOpen} onClose={handleCloseModal} message={resultContent} />
+      <div className='result-wrapper'>
+        <ShowResultButton onClick={handleShowResult} />
+      </div>
       <Footer />
+      <Modal show={isModalOpen} onClose={handleCloseModal} message={modalMessage} />
     </div>
   );
 }
