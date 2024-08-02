@@ -1,57 +1,57 @@
-const handleClick = async () => {
-  setEvents([]);
-  setProgress(0);
+import React, { useState } from 'react';
+import uploadIcon from '../assets/upload-icon.png';
 
-  if (!files.Upload_Invoice || !files.Upload_Confirmation) {
-    alert("Please select both files before reconciling");
-    return;
-  }
+const FileUpload = ({ name, value, onFileSelect, disabled }) => {
+  const [selectedFile, setSelectedFile] = useState(null);
 
-  console.log("Btn clicked");
-
-  const formData = new FormData();
-  for (const [key, value] of Object.entries(files)) {
-    console.log('key ' + key + ' value ', value);
-    if (value) {
-      formData.append(key, value);
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file && (file.type === 'application/pdf' || file.type === 'text/csv')) {
+      setSelectedFile(file);
+      onFileSelect(value, file);
+    } else {
+      alert('Only PDF and CSV files are allowed.');
     }
-  }
+  };
 
-  try {
-    const response = await fetch(`${config.apiBaseUrl}${config.routes.uploader}`, {
-      method: "POST",
-      body: formData,
-    });
+  const removeFile = () => {
+    setSelectedFile(null);
+    onFileSelect(value, null);
+  };
 
-    const result = await response.json();
-    alert("Files Upload Successful !");
-    setDisabled(true);
-    setIsCancelVisible(true);
-
-    // Start listening to the server-sent events
-    const eventSource = new EventSource(`${config.apiBaseUrl}${config.routes.start_seq}`);
-    eventSourceRef.current = eventSource;
-
-    eventSource.onmessage = function (event) {
-      const newEvent = JSON.parse(event.data);
-      setEvents((prevEvents) => [...prevEvents, newEvent]);
-
-      if (newEvent.progress !== undefined) {
-        setProgress(newEvent.progress);
-
-        // Hide the cancel button when progress reaches 100%
-        if (newEvent.progress === 100) {
-          setIsCancelVisible(false);
-          eventSource.close();
-        }
-      }
-    };
-
-    eventSource.onerror = function () {
-      eventSource.close();
-      eventSourceRef.current = null;
-    };
-  } catch (error) {
-    alert("Error uploading files:", error);
-  }
+  return (
+    <div className="file-upload">
+      <label htmlFor={`file-input-${value}`} className="file-label">
+        <h3>{name}</h3>
+        <div className="file-input-container">
+          <img src={uploadIcon} alt="Upload Icon" className="upload-icon" />
+          <span className="file-input-overlay">
+            Drag & Drop or <span className="browse">Browse</span>
+          </span>
+          <input
+            type="file"
+            id={`file-input-${value}`}
+            className="file-input"
+            accept=".pdf, .csv"
+            onChange={handleFileChange}
+            disabled={disabled}
+          />
+          <p className="file-support">Supports: PDF, CSV only</p>
+        </div>
+      </label>
+      {selectedFile && (
+        <div className="selected-file">
+          <h4>Selected File:</h4>
+          <ul>
+            <li>
+              {selectedFile.name} 
+              <button onClick={removeFile} disabled={disabled}>X</button>
+            </li>
+          </ul>
+        </div>
+      )}
+    </div>
+  );
 };
+
+export default FileUpload;
