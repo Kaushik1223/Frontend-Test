@@ -1,124 +1,57 @@
-import React, { useState, useEffect } from 'react';
-import Navbar from './components/Navbar';
-import FileUpload from './components/FileUpload';
-import ReconcileButton from './components/ReconcileButton';
-import Footer from './components/Footer';
-import TextContainer from './components/TextContainer';
-import ShowResultButton from './components/ShowResultButton';
-import Modal from './components/Modal';
-import ProgressLog from './components/ProgressLog';
-import config from './config.json';
-import './App.css';
+const handleClick = async () => {
+  setEvents([]);
+  setProgress(0);
 
-function App() {
-  const [files, setFiles] = useState([]);
-  const [progress, setProgress] = useState(0);
-  const [intervalId, setIntervalId] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [modalMessage, setModalMessage] = useState('');
-  const [isCancelVisible, setIsCancelVisible] = useState(false);
-  const [isReconcileVisible, setIsReconcileVisible] = useState(true); // State for Reconcile button visibility
-  const [logs, setLogs] = useState([]);
+  if (!files.Upload_Invoice || !files.Upload_Confirmation) {
+    alert("Please select both files before reconciling");
+    return;
+  }
 
-  useEffect(() => {
-    if (progress === 100) {
-      clearInterval(intervalId);
-      setIntervalId(null);
-      setIsCancelVisible(false); // Hide cancel button
-      setIsReconcileVisible(true); // Show reconcile button
-      setLogs(prevLogs => [...prevLogs, "Reconciliation completed."]);
+  console.log("Btn clicked");
+
+  const formData = new FormData();
+  for (const [key, value] of Object.entries(files)) {
+    console.log('key ' + key + ' value ', value);
+    if (value) {
+      formData.append(key, value);
     }
-  }, [progress, intervalId]);
+  }
 
-  const fetchProgress = async () => {
-    try {
-      const response = await fetch(`${config.apiBaseUrl}${config.routes.progress}`);
-      const data = await response.json();
-      setProgress(data.progress);
-      setLogs(prevLogs => [...prevLogs, `${data.progress}% completed...`]);
-    } catch (error) {
-      console.error("Error fetching progress:", error);
-    }
-  };
+  try {
+    const response = await fetch(`${config.apiBaseUrl}${config.routes.uploader}`, {
+      method: "POST",
+      body: formData,
+    });
 
-  const handleReconcile = async () => {
-    setLogs(prevLogs => [...prevLogs, "Reconciliation started..."]);
-    setProgress(0); // Reset progress
-    const formData = new FormData();
-    files.forEach(file => formData.append('files', file));
+    const result = await response.json();
+    alert("Files Upload Successful !");
+    setDisabled(true);
+    setIsCancelVisible(true);
 
-    try {
-      const response = await fetch(`${config.apiBaseUrl}${config.routes.startProcess}`, {
-        method: 'POST',
-        body: formData,
-      });
-      if (response.ok) {
-        setLogs(prevLogs => [...prevLogs, "Files sent successfully."]);
-        const id = setInterval(fetchProgress, 1000);
-        setIntervalId(id);
-        setIsCancelVisible(true); // Show cancel button
-        setIsReconcileVisible(false); // Hide reconcile button
-      } else {
-        setLogs(prevLogs => [...prevLogs, "Failed to start reconciliation."]);
+    // Start listening to the server-sent events
+    const eventSource = new EventSource(`${config.apiBaseUrl}${config.routes.start_seq}`);
+    eventSourceRef.current = eventSource;
+
+    eventSource.onmessage = function (event) {
+      const newEvent = JSON.parse(event.data);
+      setEvents((prevEvents) => [...prevEvents, newEvent]);
+
+      if (newEvent.progress !== undefined) {
+        setProgress(newEvent.progress);
+
+        // Hide the cancel button when progress reaches 100%
+        if (newEvent.progress === 100) {
+          setIsCancelVisible(false);
+          eventSource.close();
+        }
       }
-    } catch (error) {
-      console.error("Error during reconciliation:", error);
-      setLogs(prevLogs => [...prevLogs, "Error occurred during reconciliation."]);
-    }
-  };
+    };
 
-  const handleCancel = async () => {
-    if (intervalId) {
-      clearInterval(intervalId);
-      setIntervalId(null);
-    }
-    setLogs(prevLogs => [...prevLogs, "Reconciliation process cancelled."]);
-    setProgress(0);
-    setIsCancelVisible(false);
-
-    try {
-      const response = await fetch(`${config.apiBaseUrl}${config.routes.cancelProcess}`, { method: 'POST' });
-      if (response.ok) {
-        setLogs(prevLogs => [...prevLogs, "Cancellation successful."]);
-        setIsReconcileVisible(true); // Show reconcile button on cancellation
-      } else {
-        setLogs(prevLogs => [...prevLogs, "Cancellation failed."]);
-      }
-    } catch (error) {
-      console.error("Error during cancellation:", error);
-      setLogs(prevLogs => [...prevLogs, "Error occurred during cancellation."]);
-    }
-  };
-
-  const handleShowResult = () => {
-    setIsModalOpen(true);
-    setModalMessage("Hello message from backend (or any other dynamic content)");
-  };
-
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-  };
-
-  return (
-    <div className="App">
-      <Navbar />
-      <TextContainer />
-      <main className="main-content">
-        <div className="upload">
-          <FileUpload name="Upload Invoice" files={files} setFiles={setFiles} />
-          <FileUpload name="Upload Confirmations" files={files} setFiles={setFiles} />
-        </div>
-        {isReconcileVisible && <ReconcileButton onClick={handleReconcile} />}
-        {isCancelVisible && <button className="cancel-button" onClick={handleCancel}>Cancel</button>}
-        <ProgressLog logs={logs} />
-      </main>
-      <div className='result-wrapper'>
-        <ShowResultButton onClick={handleShowResult} />
-      </div>
-      <Footer />
-      <Modal show={isModalOpen} onClose={handleCloseModal} message={modalMessage} />
-    </div>
-  );
-}
-
-export default App;
+    eventSource.onerror = function () {
+      eventSource.close();
+      eventSourceRef.current = null;
+    };
+  } catch (error) {
+    alert("Error uploading files:", error);
+  }
+};
