@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice Template</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="invoice-container">
+        <header>
+            <div class="logo">
+                <img src="C:\Users\kaush\Desktop\InvoiceTEMP\public\WF-logo.png" alt="Wells Fargo Logo">
+            </div>
+            <div class="company-details">
+                <p>Wells Fargo Securities, LLC</p>
+                <p>PO BOX 5120</p>
+                <p>SIOUX FALLS, 5D 57117-5120</p>
+                <p>1-800-643-3751</p>
+            </div>
+        </header>
+        <section class="invoice-details">
+            <div class="qr">
+                <img src="" alt="QR">
+            </div>
+            <div class="left">
+                <p>[Client Name]</p>
+                <p>[Client Address Line 1]</p>
+                <p>[Client Address Line 2]</p>
+            </div>
+            <div class="right">
+                <div class="account-details">
+                    <p><b>ACCOUNT NUMBER</b></p>
+                    <p>[Account Number]</p><br>
+                    <p><b>YOUR REPRESENTATIVE</b></p>
+                    <p>[Representative Name]</p>
+                </div>
+                <div class="contact-details">
+                    <p><b>PHONE</b></p>
+                    <p>[Phone Number]</p>   
+                </div>
+                <div class="page-details">
+                    <p><b>Page 1 of [1]</b></p><br>
+                    <p><b>Solicited Trade</b></p>
+                </div>
+            </div>
+        </section>
+        <section class="confirmation">
+            <h2>CONFIRMATION</h2>
+            <table class="outer-table">
+                <tr>
+                    <td>
+                        <table class="inner-table no-border">
+                            <thead>
+                                <tr>
+                                    <th>Activity</th>
+                                    <th>Quantity</th>
+                                    <th>Security ID</th>
+                                    <th>ISIN</th>
+                                    <th>Market*</th>
+                                    <th>Account Type*</th>
+                                    <th>Transaction Number</th>
+                                    <th>Trade Date</th>
+                                    <th>Settlement Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>[Activity]</td>
+                                    <td>[Quantity]</td>
+                                    <td>[Security ID]</td>
+                                    <td>[ISIN]</td>
+                                    <td>[Market*]</td>
+                                    <td>[Account Type*]</td>
+                                    <td>[Transaction Number]</td>
+                                    <td>[Trade Date]</td>
+                                    <td>[Settlement Date]</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <table class="inner-table no-border">
+                            <thead>
+                                <tr>
+                                    <th>Price</th>
+                                    <th>Principal</th>
+                                    <th>Interest</th>
+                                    <th>Commission</th>
+                                    <th>Transaction Fees</th>
+                                    <th>Transaction Fees Codes*</th>
+                                    <th>Net Amount</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>[Price]</td>
+                                    <td>[Principal]</td>
+                                    <td>[Interest]</td>
+                                    <td>[Commission]</td>
+                                    <td>[Transaction Fees]</td>
+                                    <td>[Transaction Fees Codes*]</td>
+                                    <td>[Net Amount]</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <table class="inner-table no-border">
+                            <thead>
+                                <tr>
+                                    <th>Security Description</th>
+                                    <th>Symbol</th>
+                                    <th>Day Count</th>
+                                    <th>Coupon Rate</th>
+                                    <th>Maturity Rate</th>
+                                    <th>Issue Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>[Security Description]</td>
+                                    <td>[Symbol]</td>
+                                    <td>[Day Count]</td>
+                                    <td>[Coupon Rate]</td>
+                                    <td>[Maturity Rate]</td>
+                                    <td>[Issue Date]</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <table class="inner-table bordered">
+                            <thead>
+                                <tr>
+                                    <th colspan="2">Other Information</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="2">
+                                        <p>----</p>
+                                        <p>----</p>
+                                        <p>----</p>
+                                        <p>----</p>
+                                        <p>----</p>
+                                        <p>----</p>
+                                        <p>----</p>
+                                        <p>----</p>
+                                        <p>----</p>
+                                        <p>----</p>
+                                        <p>----</p>
+                                        <p>----</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </section>
+        <footer class="footer-container">
+            <div class="footer-box">
+                <p>Wells Fargo Securities, LLC Member FINRA & SIPC</p>
+                <p>INVESTMENTS: NOT FDIC INSURED-NOT BANK GUARANTEED-MAY LOSE VALUE</p>
+                <p><i>Certificates of Deposit FDIC insured up to $250,000 per institution</i></p>
+                <p>Transactions subject to the terms and conditions stated herein and on the reverse side hereof. Retain for income tax purposes.</p>
+            </div>
+            <div class="footer-bottom">
+                <div class="qr-code">
+                    <img src="qr_code.png" alt="QR Code">
+                </div>
+                <div class="placeholders">
+                    <span>[Placeholder1]</span>
+                    <span>[Placeholder2]</span>
+                    <span>[Placeholder3]</span>
+                    <span>[Placeholder4]</span>
+                    <span>[Placeholder5]</span>
+                    <span>[Placeholder6]</span>
+                    <span>[Placeholder7]</span>
+                    <span>[Placeholder8]</span>
+                </div>
+            </div>
+        </footer>
+</body>
+</html>
+
+    </div>
+</body>
+</html>
