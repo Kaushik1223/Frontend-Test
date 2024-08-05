@@ -1,26 +1,24 @@
-import i18n from 'i18next';
-import { initReactI18next } from 'react-i18next';
+// src/components/LanguageSwitcher.js
+import React from 'react';
+import { useTranslation } from 'react-i18next';
 
-import en from './locales/en.json';
-import fr from './locales/fr.json';
+const LanguageSwitcher = () => {
+  const { i18n } = useTranslation();
 
-i18n
-  .use(initReactI18next) // passes i18n down to react-i18next
-  .init({
-    resources: {
-      en: {
-        translation: en,
-      },
-      fr: {
-        translation: fr,
-      },
-    },
-    lng: 'en', // default language
-    fallbackLng: 'en',
+  const changeLanguage = (lng) => {
+    i18n.changeLanguage(lng);
+  };
 
-    interpolation: {
-      escapeValue: false, // react already safes from xss
-    },
-  });
+  return (
+    <div className="language-switcher">
+      <select onChange={(e) => changeLanguage(e.target.value)} defaultValue="choose">
+        <option value="choose" disabled>Choose the language</option>
+        <option value="en">English</option>
+        <option value="fr">French</option>
+        {/* Add more languages here as needed */}
+      </select>
+    </div>
+  );
+};
 
-export default i18n;
+export default LanguageSwitcher;
