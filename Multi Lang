@@ -1,39 +1,28 @@
-// src/components/LanguageSwitcher.js
-import React, { useState } from 'react';
-import { useTranslation } from 'react-i18next';
-import langIcon from '../assets/lang-icon.png'; // Add your language icon image
+.language-switcher {
+  position: relative;
+  display: inline-block;
+}
 
-const LanguageSwitcher = () => {
-  const { i18n } = useTranslation();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
+.language-icon {
+  width: 30px;
+  height: 30px;
+  cursor: pointer;
+}
 
-  const changeLanguage = (lng) => {
-    i18n.changeLanguage(lng);
-    setDropdownOpen(false); // Close dropdown after selection
-  };
+.dropdown-menu {
+  display: block;
+  position: absolute;
+  background-color: white;
+  border: 1px solid #ccc;
+  z-index: 1;
+  right: 0;
+}
 
-  const toggleDropdown = () => {
-    setDropdownOpen(!dropdownOpen);
-  };
+.dropdown-menu div {
+  padding: 8px 16px;
+  cursor: pointer;
+}
 
-  return (
-    <div className="language-switcher">
-      <img 
-        src={langIcon} 
-        alt="Language" 
-        onClick={toggleDropdown} 
-        className="language-icon"
-        title="Change Language"
-      />
-      {dropdownOpen && (
-        <div className="dropdown-menu">
-          <div onClick={() => changeLanguage('en')}>English</div>
-          <div onClick={() => changeLanguage('hi')}>Hindi</div>
-          {/* Add more languages as needed */}
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default LanguageSwitcher;
+.dropdown-menu div:hover {
+  background-color: #f1f1f1;
+}
