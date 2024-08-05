@@ -1,99 +1,26 @@
-{
-  "navbar": {
-    "logoff": "Log Off"
-  },
-  "fileUpload": {
-    "uploadInvoice": "Upload Invoice",
-    "uploadConfirmation": "Upload Confirmation",
-    "selectedFile": "Selected File:",
-    "supports": "Supports: PDF, CSV only",
-    "browse": "Browse",
-    "dragDrop": "Drag & Drop or"
-  },
-  "reconcileButton": {
-    "reconcile": "Reconcile"
-  },
-  "progressBar": {
-    "reconciliationInProgress": "Reconciliation in Progress",
-    "completed": "Completed"
-  },
-  "cancelButton": {
-    "cancel": "Cancel"
-  },
-  "showResultButton": {
-    "showResult": "Show Result"
-  },
-  "footer": {
-    "footerText": "Footer Text"
-  },
-  "modal": {
-    "result": "Result",
-    "close": "Close"
-  },
-  "logOffModal": {
-    "loggedOffMessage": "You are logged off",
-    "signIn": "Sign In"
-  },
-  "progressLog": {
-    "noData": "No data available"
-  }
-}
-
-----------------------
-
 import i18n from 'i18next';
 import { initReactI18next } from 'react-i18next';
-import HttpApi from 'i18next-http-backend';
-import LanguageDetector from 'i18next-browser-languagedetector';
+
+import en from './locales/en.json';
+import fr from './locales/fr.json';
 
 i18n
-  .use(HttpApi)
-  .use(LanguageDetector)
-  .use(initReactI18next)
+  .use(initReactI18next) // passes i18n down to react-i18next
   .init({
+    resources: {
+      en: {
+        translation: en,
+      },
+      fr: {
+        translation: fr,
+      },
+    },
+    lng: 'en', // default language
     fallbackLng: 'en',
-    detection: {
-      order: ['queryString', 'cookie'],
-      caches: ['cookie']
+
+    interpolation: {
+      escapeValue: false, // react already safes from xss
     },
-    backend: {
-      loadPath: '/locales/{{lng}}.json'
-    },
-    react: {
-      useSuspense: false
-    }
   });
 
 export default i18n;
-
-------------------
-
-import React from 'react';
-import ReactDOM from 'react-dom';
-import App from './App';
-import { I18nextProvider } from 'react-i18next';
-import i18n from './i18n';
-
-ReactDOM.render(
-  <I18nextProvider i18n={i18n}>
-    <App />
-  </I18nextProvider>,
-  document.getElementById('root')
-);
-
------------------
-
-import React from 'react';
-import { useTranslation } from 'react-i18next';
-
-const Navbar = ({ onLogOff }) => {
-  const { t } = useTranslation();
-
-  return (
-    <nav>
-      <button onClick={onLogOff}>{t('navbar.logoff')}</button>
-    </nav>
-  );
-};
-
-export default Navbar;
