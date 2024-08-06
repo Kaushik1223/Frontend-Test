@@ -1,14 +1,9 @@
-// vite.config.js
-import { defineConfig } from 'vite';
-import react from '@vitejs/plugin-react';
-import fs from 'fs';
+const handleShowResult = () => {
+    const jsonMessages = events
+      .filter(event => typeof event.message === 'object') // Filter events with JSON messages
+      .map(event => JSON.stringify(event.message, null, 2)) // Convert each JSON message to string
+      .join('\n'); // Join the JSON strings with newlines
 
-// Read the port from the config file
-const config = JSON.parse(fs.readFileSync('./config.json', 'utf-8'));
-
-export default defineConfig({
-  plugins: [react()],
-  server: {
-    port: config.port,
-  },
-});
+    setMessage(jsonMessages); // Set the JSON strings to the state
+    setShowModal(true); // Show the modal
+  };
