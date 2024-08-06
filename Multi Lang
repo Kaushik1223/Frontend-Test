@@ -1,28 +1,23 @@
-.language-switcher {
-  position: relative;
-  display: inline-block;
+// package.json
+{
+  // ...
+  "scripts": {
+    "start": "PORT=$(jq -r '.port' ./src/config.json) react-scripts start"
+    // ...
+  },
+  // ...
 }
 
-.language-icon {
-  width: 30px;
-  height: 30px;
-  cursor: pointer;
-}
+// src/setupProxy.js
+const { createProxyMiddleware } = require('http-proxy-middleware');
+const config = require('./config.json');
 
-.dropdown-menu {
-  display: block;
-  position: absolute;
-  background-color: white;
-  border: 1px solid #ccc;
-  z-index: 1;
-  right: 0;
-}
-
-.dropdown-menu div {
-  padding: 8px 16px;
-  cursor: pointer;
-}
-
-.dropdown-menu div:hover {
-  background-color: #f1f1f1;
-}
+module.exports = function(app) {
+  app.use(
+    '/api',
+    createProxyMiddleware({
+      target: `http://localhost:${config.port}`,
+      changeOrigin: true,
+    })
+  );
+};
