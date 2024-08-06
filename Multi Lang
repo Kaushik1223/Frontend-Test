@@ -1,23 +1,14 @@
-// package.json
-{
-  // ...
-  "scripts": {
-    "start": "PORT=$(jq -r '.port' ./src/config.json) react-scripts start"
-    // ...
+// vite.config.js
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import fs from 'fs';
+
+// Read the port from the config file
+const config = JSON.parse(fs.readFileSync('./config.json', 'utf-8'));
+
+export default defineConfig({
+  plugins: [react()],
+  server: {
+    port: config.port,
   },
-  // ...
-}
-
-// src/setupProxy.js
-const { createProxyMiddleware } = require('http-proxy-middleware');
-const config = require('./config.json');
-
-module.exports = function(app) {
-  app.use(
-    '/api',
-    createProxyMiddleware({
-      target: `http://localhost:${config.port}`,
-      changeOrigin: true,
-    })
-  );
-};
+});
