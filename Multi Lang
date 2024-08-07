@@ -1,4 +1,41 @@
-{isReconcileVisible && !isCancelling && <ReconcileButton onClick={() => {handleReconcile()}} />}
-{isCancelling && <p className="cancelling-message">Cancelling...</p>}
-{progress > 0 && progress < 100 && <ProgressBar progress={progress} max="100" />}
-{isCancelVisible && <button className='cancel-button' onClick={handleCancel}>Cancel</button>}
+const handleCancel = async () => {
+  const userConfirmed = window.confirm("Do you want to cancel?");
+  if (!userConfirmed) return;
+
+  setIsCancelling(true);
+  setLogs(prevLogs => [...prevLogs, "Cancelling..."]);
+  setIsCancelVisible(false);
+
+  try {
+    // Initiate the cancellation process
+    await axios.get(`${config.apiBaseUrl}${config.routes.cancel_seq}`);
+    
+    // Poll the same endpoint to check the cancellation status
+    pollCancelStatus();
+  } catch (error) {
+    console.error("There was an error!", error);
+    setLogs(prevLogs => [...prevLogs, "Error occurred while cancelling."]);
+    setIsReconcileVisible(true);
+    setDisabled(false);
+    setIsCancelling(false);
+  }
+};
+
+const pollCancelStatus = async () => {
+  const interval = setInterval(async () => {
+    try {
+      const response = await axios.get(`${config.apiBaseUrl}${config.routes.cancel_seq}`);
+      const status = response.data.status; // Adjust according to your actual response structure
+
+      if (status === "cancelled") {
+        clearInterval(interval);
+        setLogs(prevLogs => [...prevLogs, "Reconciliation process cancelled."]);
+        setIsReconcileVisible(true);
+        setDisabled(false);
+        setIsCancelling(false);
+      }
+    } catch (error) {
+      console.error("Error polling status", error);
+    }
+  }, 2000); // Poll every 2 seconds
+};
