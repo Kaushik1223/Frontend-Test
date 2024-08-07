@@ -1,29 +1,4 @@
-const handleCancel = async () => {
-  const userConfirmed = window.confirm("Do you want to cancel?");
-  if (!userConfirmed) return;
-
-  setIsCancelling(true);
-  setLogs(prevLogs => [...prevLogs, "Cancelling..."]);
-
-  // Wait for 2 seconds before proceeding with cancellation
-  setTimeout(async () => {
-    if (intervalId) {
-      clearInterval(intervalId);
-      setIntervalId(null);
-    }
-
-    setLogs(prevLogs => [...prevLogs, "Reconciliation process cancelled."]);
-    setProgress(0);
-    setIsCancelVisible(false);
-    setIsReconcileVisible(true);
-    setDisabled(false);
-    setIsCancelling(false);
-
-    try {
-      const response = await axios.get(`${config.apiBaseUrl}${config.routes.cancel_seq}`);
-      console.log(response.data);
-    } catch (error) {
-      console.error("There was an error!", error);
-    }
-  }, 2000); // 2 seconds delay
-};
+{isReconcileVisible && !isCancelling && <ReconcileButton onClick={() => {handleReconcile()}} />}
+{isCancelling && <p className="cancelling-message">Cancelling...</p>}
+{progress > 0 && progress < 100 && <ProgressBar progress={progress} max="100" />}
+{isCancelVisible && <button className='cancel-button' onClick={handleCancel}>Cancel</button>}
