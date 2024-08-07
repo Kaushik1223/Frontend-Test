@@ -1,9 +1,29 @@
-const handleShowResult = () => {
-    const jsonMessages = events
-      .filter(event => typeof event.message === 'object') // Filter events with JSON messages
-      .map(event => JSON.stringify(event.message, null, 2)) // Convert each JSON message to string
-      .join('\n'); // Join the JSON strings with newlines
+const handleCancel = async () => {
+  const userConfirmed = window.confirm("Do you want to cancel?");
+  if (!userConfirmed) return;
 
-    setMessage(jsonMessages); // Set the JSON strings to the state
-    setShowModal(true); // Show the modal
-  };
+  setIsCancelling(true);
+  setLogs(prevLogs => [...prevLogs, "Cancelling..."]);
+
+  // Wait for 2 seconds before proceeding with cancellation
+  setTimeout(async () => {
+    if (intervalId) {
+      clearInterval(intervalId);
+      setIntervalId(null);
+    }
+
+    setLogs(prevLogs => [...prevLogs, "Reconciliation process cancelled."]);
+    setProgress(0);
+    setIsCancelVisible(false);
+    setIsReconcileVisible(true);
+    setDisabled(false);
+    setIsCancelling(false);
+
+    try {
+      const response = await axios.get(`${config.apiBaseUrl}${config.routes.cancel_seq}`);
+      console.log(response.data);
+    } catch (error) {
+      console.error("There was an error!", error);
+    }
+  }, 2000); // 2 seconds delay
+};
