@@ -9,9 +9,9 @@ const handleCancel = async () => {
   try {
     // Initiate the cancellation process
     await axios.get(`${config.apiBaseUrl}${config.routes.cancel_seq}`);
-    
-    // Poll the same endpoint to check the cancellation status
-    pollCancelStatus();
+
+    // Poll the logs to check for the cancellation message
+    checkCancellationStatus();
   } catch (error) {
     console.error("There was an error!", error);
     setLogs(prevLogs => [...prevLogs, "Error occurred while cancelling."]);
@@ -21,21 +21,14 @@ const handleCancel = async () => {
   }
 };
 
-const pollCancelStatus = async () => {
-  const interval = setInterval(async () => {
-    try {
-      const response = await axios.get(`${config.apiBaseUrl}${config.routes.cancel_seq}`);
-      const status = response.data.status; // Adjust according to your actual response structure
-
-      if (status === "cancelled") {
-        clearInterval(interval);
-        setLogs(prevLogs => [...prevLogs, "Reconciliation process cancelled."]);
-        setIsReconcileVisible(true);
-        setDisabled(false);
-        setIsCancelling(false);
-      }
-    } catch (error) {
-      console.error("Error polling status", error);
+const checkCancellationStatus = () => {
+  const interval = setInterval(() => {
+    const logContainsCancelled = events.some(event => event.message.includes("Reconciliation process cancelled."));
+    if (logContainsCancelled) {
+      clearInterval(interval);
+      setIsReconcileVisible(true);
+      setDisabled(false);
+      setIsCancelling(false);
     }
-  }, 2000); // Poll every 2 seconds
+  }, 1000); // Check every 1 second
 };
