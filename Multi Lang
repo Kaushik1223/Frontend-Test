@@ -1,11 +1,18 @@
 import React, { useState } from 'react';
 
 const TreeNode = ({ node }) => {
-  const [expanded, setExpanded] = useState(false);
+  const [expandedAccount, setExpandedAccount] = useState(false);
+  const [expandedTransaction, setExpandedTransaction] = useState({});
+  const [expandedConfirmation, setExpandedConfirmation] = useState({});
+  const [expandedDifference, setExpandedDifference] = useState({});
 
-  const toggleExpand = () => {
-    setExpanded(!expanded);
-  };
+  const toggleExpandAccount = () => setExpandedAccount(!expandedAccount);
+  const toggleExpandTransaction = (index) =>
+    setExpandedTransaction((prev) => ({ ...prev, [index]: !prev[index] }));
+  const toggleExpandConfirmation = (index) =>
+    setExpandedConfirmation((prev) => ({ ...prev, [index]: !prev[index] }));
+  const toggleExpandDifference = (index) =>
+    setExpandedDifference((prev) => ({ ...prev, [index]: !prev[index] }));
 
   const renderDifferencesTable = (differences) => (
     <table style={{ marginLeft: '20px' }}>
@@ -27,33 +34,43 @@ const TreeNode = ({ node }) => {
   );
 
   const renderAccountDetails = (account) => (
-    <>
-      <div style={{ fontWeight: 'bold' }}>
-        Account no: {account.Account} -
-        {account.Result.map((result, index) => (
-          <div key={index} style={{ marginLeft: '20px' }}>
-            Transaction no: {result['Transaction Number']} -
-            Type of Confirmation: {result.Confirmation} -
-            <span onClick={toggleExpand} style={{ cursor: 'pointer', fontWeight: 'normal' }}>
-              {expanded ? '-' : '+'}
-            </span>
-            {expanded && (
-              <div>
-                Difference:
-                {renderDifferencesTable(result.Differences)}
-              </div>
-            )}
-          </div>
-        ))}
+    <div>
+      <div style={{ fontWeight: 'bold', cursor: 'pointer' }} onClick={toggleExpandAccount}>
+        Account no: {account.Account} {expandedAccount ? '-' : '+'}
       </div>
-    </>
-  );
-
-  return (
-    <div className="tree-node">
-      {renderAccountDetails(node)}
+      {expandedAccount && (
+        <div style={{ marginLeft: '20px' }}>
+          {account.Result.map((result, index) => (
+            <div key={index}>
+              <div style={{ cursor: 'pointer' }} onClick={() => toggleExpandTransaction(index)}>
+                Transaction no: {result['Transaction Number']} {expandedTransaction[index] ? '-' : '+'}
+              </div>
+              {expandedTransaction[index] && (
+                <div style={{ marginLeft: '20px' }}>
+                  <div
+                    style={{ cursor: 'pointer' }}
+                    onClick={() => toggleExpandConfirmation(index)}
+                  >
+                    Type of Confirmation: {result.Confirmation} {expandedConfirmation[index] ? '-' : '+'}
+                  </div>
+                  {expandedConfirmation[index] && (
+                    <div style={{ marginLeft: '20px' }}>
+                      <div style={{ cursor: 'pointer' }} onClick={() => toggleExpandDifference(index)}>
+                        Difference {expandedDifference[index] ? '-' : '+'}
+                      </div>
+                      {expandedDifference[index] && renderDifferencesTable(result.Differences)}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
+
+  return <div className="tree-node">{renderAccountDetails(node)}</div>;
 };
 
 export default TreeNode;
