@@ -1,48 +1,76 @@
 import React, { useState } from 'react';
 
-const TreeNode = ({ node, level = 0 }) => {
-  const [expanded, setExpanded] = useState(false);
+const TreeNode = ({ node }) => {
+  const [expandedAccount, setExpandedAccount] = useState(false);
+  const [expandedTransaction, setExpandedTransaction] = useState({});
+  const [expandedConfirmation, setExpandedConfirmation] = useState({});
+  const [expandedDifference, setExpandedDifference] = useState({});
 
-  const handleToggle = () => {
-    setExpanded(!expanded);
-  };
+  const toggleExpandAccount = () => setExpandedAccount(!expandedAccount);
+  const toggleExpandTransaction = (index) =>
+    setExpandedTransaction((prev) => ({ ...prev, [index]: !prev[index] }));
+  const toggleExpandConfirmation = (index) =>
+    setExpandedConfirmation((prev) => ({ ...prev, [index]: !prev[index] }));
+  const toggleExpandDifference = (index) =>
+    setExpandedDifference((prev) => ({ ...prev, [index]: !prev[index] }));
 
-  return (
-    <div className="tree-node">
-      <div className="tree-node-header" onClick={handleToggle}>
-        <span className="expand-icon">{expanded ? '-' : '+'}</span>
-        <span>
-          {level === 0 && `Account No: ${node.Account}`}
-          {level === 1 && `Transaction No: ${node.TransactionNumber}`}
-          {level === 2 && `Type of Confirmation: ${node.Confirmation}`}
-        </span>
+  const renderDifferencesTable = (differences) => (
+    <table className="differences-table">
+      <thead>
+        <tr>
+          <th>Excel</th>
+          <th>PDF</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Object.entries(differences).map(([key, value], index) => (
+          <tr key={index}>
+            <td>{value.Excel}</td>
+            <td>{value.PDF}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+
+  const renderAccountDetails = (account) => (
+    <div>
+      <div className="account-header" onClick={toggleExpandAccount}>
+        Account no: {account.Account} {expandedAccount ? '-' : '+'}
       </div>
-      {expanded && (
-        <div className="content">
-          {level === 2 ? (
-            <table>
-              <thead>
-                <tr>
-                  <th>Excel</th>
-                  <th>PDF</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>{node.Differences.Excel}</td>
-                  <td>{node.Differences.PDF}</td>
-                </tr>
-              </tbody>
-            </table>
-          ) : (
-            (node.Result || []).map((child, index) => (
-              <TreeNode key={index} node={child} level={level + 1} />
-            ))
-          )}
+      {expandedAccount && (
+        <div className="account-details">
+          {account.Result.map((result, index) => (
+            <div key={index} className="transaction-container">
+              <div className="transaction-header" onClick={() => toggleExpandTransaction(index)}>
+                Transaction no: {result['Transaction Number']} {expandedTransaction[index] ? '-' : '+'}
+              </div>
+              {expandedTransaction[index] && (
+                <div className="transaction-details">
+                  <div
+                    className="confirmation-header"
+                    onClick={() => toggleExpandConfirmation(index)}
+                  >
+                    Type of Confirmation: {result.Confirmation} {expandedConfirmation[index] ? '-' : '+'}
+                  </div>
+                  {expandedConfirmation[index] && (
+                    <div className="confirmation-details">
+                      <div className="difference-header" onClick={() => toggleExpandDifference(index)}>
+                        Difference {expandedDifference[index] ? '-' : '+'}
+                      </div>
+                      {expandedDifference[index] && renderDifferencesTable(result.Differences)}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
         </div>
       )}
     </div>
   );
+
+  return <div className="tree-node">{renderAccountDetails(node)}</div>;
 };
 
 export default TreeNode;
