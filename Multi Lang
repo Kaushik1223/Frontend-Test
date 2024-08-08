@@ -1,3 +1,7 @@
+
+
+-----------------
+
 import React from 'react';
 import TreeNode from './TreeNode';
 
@@ -12,43 +16,3 @@ const TreeView = ({ data }) => {
 };
 
 export default TreeView;
-
------------------
-
-import React, { useState } from 'react';
-
-const TreeNode = ({ node }) => {
-  const [expanded, setExpanded] = useState(false);
-
-  const toggleExpand = () => {
-    setExpanded(!expanded);
-  };
-
-  return (
-    <div className="tree-node">
-      <div className="node-label" onClick={toggleExpand}>
-        {expanded ? '-' : '+'} {node.Account || node['Transaction Number'] || node.Confirmation || 'Differences'}
-      </div>
-      {expanded && (
-        <div className="node-children">
-          {node.Result ? (
-            node.Result.map((result, index) => (
-              <TreeNode key={index} node={result} />
-            ))
-          ) : node.Differences ? (
-            Object.entries(node.Differences).map(([key, value], index) => (
-              <div key={index}>
-                <strong>{key}:</strong> Excel: {value.Excel}, PDF: {value.PDF}
-              </div>
-            ))
-          ) : null}
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default TreeNode;
-
---------------------&&&&&&&&
-
