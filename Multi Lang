@@ -1,76 +1,39 @@
-import React, { useState } from 'react';
+.tree-node {
+  margin-bottom: 10px;
+}
 
-const TreeNode = ({ node }) => {
-  const [expandedAccount, setExpandedAccount] = useState(false);
-  const [expandedTransaction, setExpandedTransaction] = useState({});
-  const [expandedConfirmation, setExpandedConfirmation] = useState({});
-  const [expandedDifference, setExpandedDifference] = useState({});
+.account-header,
+.transaction-header,
+.confirmation-header,
+.difference-header {
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 1.2rem;
+  margin-bottom: 5px;
+}
 
-  const toggleExpandAccount = () => setExpandedAccount(!expandedAccount);
-  const toggleExpandTransaction = (index) =>
-    setExpandedTransaction((prev) => ({ ...prev, [index]: !prev[index] }));
-  const toggleExpandConfirmation = (index) =>
-    setExpandedConfirmation((prev) => ({ ...prev, [index]: !prev[index] }));
-  const toggleExpandDifference = (index) =>
-    setExpandedDifference((prev) => ({ ...prev, [index]: !prev[index] }));
+.account-details,
+.transaction-details,
+.confirmation-details {
+  margin-left: 20px;
+  margin-bottom: 10px;
+}
 
-  const renderDifferencesTable = (differences) => (
-    <table className="differences-table">
-      <thead>
-        <tr>
-          <th>Excel</th>
-          <th>PDF</th>
-        </tr>
-      </thead>
-      <tbody>
-        {Object.entries(differences).map(([key, value], index) => (
-          <tr key={index}>
-            <td>{value.Excel}</td>
-            <td>{value.PDF}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
+.differences-table {
+  margin-left: 20px;
+  border-collapse: collapse;
+  width: 100%;
+}
 
-  const renderAccountDetails = (account) => (
-    <div>
-      <div className="account-header" onClick={toggleExpandAccount}>
-        Account no: {account.Account} {expandedAccount ? '-' : '+'}
-      </div>
-      {expandedAccount && (
-        <div className="account-details">
-          {account.Result.map((result, index) => (
-            <div key={index} className="transaction-container">
-              <div className="transaction-header" onClick={() => toggleExpandTransaction(index)}>
-                Transaction no: {result['Transaction Number']} {expandedTransaction[index] ? '-' : '+'}
-              </div>
-              {expandedTransaction[index] && (
-                <div className="transaction-details">
-                  <div
-                    className="confirmation-header"
-                    onClick={() => toggleExpandConfirmation(index)}
-                  >
-                    Type of Confirmation: {result.Confirmation} {expandedConfirmation[index] ? '-' : '+'}
-                  </div>
-                  {expandedConfirmation[index] && (
-                    <div className="confirmation-details">
-                      <div className="difference-header" onClick={() => toggleExpandDifference(index)}>
-                        Difference {expandedDifference[index] ? '-' : '+'}
-                      </div>
-                      {expandedDifference[index] && renderDifferencesTable(result.Differences)}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+.differences-table th,
+.differences-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+}
 
-  return <div className="tree-node">{renderAccountDetails(node)}</div>;
-};
-
-export default TreeNode;
+.differences-table th {
+  padding-top: 12px;
+  padding-bottom: 12px;
+  text-align: left;
+  background-color: #f2f2f2;
+}
