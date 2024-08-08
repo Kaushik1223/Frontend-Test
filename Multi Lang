@@ -1,34 +1,54 @@
-const handleCancel = async () => {
-  const userConfirmed = window.confirm("Do you want to cancel?");
-  if (!userConfirmed) return;
+import React from 'react';
+import TreeNode from './TreeNode';
 
-  setIsCancelling(true);
-  setLogs(prevLogs => [...prevLogs, "Cancelling..."]);
-  setIsCancelVisible(false);
-
-  try {
-    // Initiate the cancellation process
-    await axios.get(`${config.apiBaseUrl}${config.routes.cancel_seq}`);
-
-    // Poll the logs to check for the cancellation message
-    checkCancellationStatus();
-  } catch (error) {
-    console.error("There was an error!", error);
-    setLogs(prevLogs => [...prevLogs, "Error occurred while cancelling."]);
-    setIsReconcileVisible(true);
-    setDisabled(false);
-    setIsCancelling(false);
-  }
+const TreeView = ({ data }) => {
+  return (
+    <div className="tree-view">
+      {data.Differences.map((account, index) => (
+        <TreeNode key={index} node={account} />
+      ))}
+    </div>
+  );
 };
 
-const checkCancellationStatus = () => {
-  const interval = setInterval(() => {
-    const logContainsCancelled = events.some(event => event.message.includes("Reconciliation process cancelled."));
-    if (logContainsCancelled) {
-      clearInterval(interval);
-      setIsReconcileVisible(true);
-      setDisabled(false);
-      setIsCancelling(false);
-    }
-  }, 1000); // Check every 1 second
+export default TreeView;
+
+-----------------
+
+import React, { useState } from 'react';
+
+const TreeNode = ({ node }) => {
+  const [expanded, setExpanded] = useState(false);
+
+  const toggleExpand = () => {
+    setExpanded(!expanded);
+  };
+
+  return (
+    <div className="tree-node">
+      <div className="node-label" onClick={toggleExpand}>
+        {expanded ? '-' : '+'} {node.Account || node['Transaction Number'] || node.Confirmation || 'Differences'}
+      </div>
+      {expanded && (
+        <div className="node-children">
+          {node.Result ? (
+            node.Result.map((result, index) => (
+              <TreeNode key={index} node={result} />
+            ))
+          ) : node.Differences ? (
+            Object.entries(node.Differences).map(([key, value], index) => (
+              <div key={index}>
+                <strong>{key}:</strong> Excel: {value.Excel}, PDF: {value.PDF}
+              </div>
+            ))
+          ) : null}
+        </div>
+      )}
+    </div>
+  );
 };
+
+export default TreeNode;
+
+--------------------&&&&&&&&
+
