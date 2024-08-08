@@ -1,76 +1,67 @@
 import React, { useState } from 'react';
+import uploadIcon from '../assets/upload-icon.png';
+import { MdOutlineCancel } from "react-icons/md";
+import { useTranslation } from 'react-i18next';
 
-const TreeNode = ({ node }) => {
-  const [expandedAccount, setExpandedAccount] = useState(false);
-  const [expandedTransaction, setExpandedTransaction] = useState({});
-  const [expandedConfirmation, setExpandedConfirmation] = useState({});
-  const [expandedDifference, setExpandedDifference] = useState({});
+const FileUpload = ({ name, value, onFileSelect, disabled }) => {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const { t } = useTranslation();
 
-  const toggleExpandAccount = () => setExpandedAccount(!expandedAccount);
-  const toggleExpandTransaction = (index) =>
-    setExpandedTransaction((prev) => ({ ...prev, [index]: !prev[index] }));
-  const toggleExpandConfirmation = (index) =>
-    setExpandedConfirmation((prev) => ({ ...prev, [index]: !prev[index] }));
-  const toggleExpandDifference = (index) =>
-    setExpandedDifference((prev) => ({ ...prev, [index]: !prev[index] }));
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    const isPdf = file && file.type === 'application/pdf';
+    const isCsv = file && file.type === 'text/csv';
+    const isExcel = file && (
+      file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+      file.type === 'application/vnd.ms-excel'
+    );
 
-  const renderDifferencesTable = (differences) => (
-    <table style={{ marginLeft: '20px' }}>
-      <thead>
-        <tr>
-          <th>Excel</th>
-          <th>PDF</th>
-        </tr>
-      </thead>
-      <tbody>
-        {Object.entries(differences).map(([key, value], index) => (
-          <tr key={index}>
-            <td>{value.Excel}</td>
-            <td>{value.PDF}</td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
+    if ((name === 'Upload Invoice' && isPdf) ||
+        (name === 'Upload Confirmation' && (isCsv || isExcel))) {
+      setSelectedFile(file);
+      onFileSelect(value, file);
+    } else {
+      alert(t('fileUpload.invalidFileType'));
+    }
+  };
 
-  const renderAccountDetails = (account) => (
-    <div>
-      <div style={{ fontWeight: 'bold', cursor: 'pointer' }} onClick={toggleExpandAccount}>
-        Account no: {account.Account} {expandedAccount ? '-' : '+'}
-      </div>
-      {expandedAccount && (
-        <div style={{ marginLeft: '20px' }}>
-          {account.Result.map((result, index) => (
-            <div key={index}>
-              <div style={{ cursor: 'pointer' }} onClick={() => toggleExpandTransaction(index)}>
-                Transaction no: {result['Transaction Number']} {expandedTransaction[index] ? '-' : '+'}
-              </div>
-              {expandedTransaction[index] && (
-                <div style={{ marginLeft: '20px' }}>
-                  <div
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => toggleExpandConfirmation(index)}
-                  >
-                    Type of Confirmation: {result.Confirmation} {expandedConfirmation[index] ? '-' : '+'}
-                  </div>
-                  {expandedConfirmation[index] && (
-                    <div style={{ marginLeft: '20px' }}>
-                      <div style={{ cursor: 'pointer' }} onClick={() => toggleExpandDifference(index)}>
-                        Difference {expandedDifference[index] ? '-' : '+'}
-                      </div>
-                      {expandedDifference[index] && renderDifferencesTable(result.Differences)}
-                    </div>
-                  )}
-                </div>
-              )}
-            </div>
-          ))}
+  const removeFile = () => {
+    setSelectedFile(null);
+    onFileSelect(value, null);
+  };
+
+  return (
+    <div className="file-upload">
+      <label htmlFor={`file-input-${value}`} className="file-label">
+        <h3>{name}</h3>
+        <div className="file-input-container">
+          <img src={uploadIcon} alt="Upload Icon" className="upload-icon" />
+          <span className="file-input-overlay">
+            {t('fileUpload.dragDrop')} <span className="browse">{t('fileUpload.browse')}</span>
+          </span>
+          <input
+            type="file"
+            id={`file-input-${value}`}
+            className="file-input"
+            accept={name === 'Upload Invoice' ? 'application/pdf' : '.csv,.xls,.xlsx'}
+            onChange={handleFileChange}
+            disabled={disabled}
+          />
+          <p className="file-support">{name === 'Upload Invoice' ? t('fileUpload.onlyPDF') : t('fileUpload.onlyCSVnExcel')}</p>
+        </div>
+      </label>
+      {selectedFile && (
+        <div className="selected-file">
+          <h4>{t('fileUpload.selectedFile')}</h4>
+          <ul>
+            <li>
+              {selectedFile.name} <button onClick={removeFile} disabled={disabled}><MdOutlineCancel /></button>
+            </li>
+          </ul>
         </div>
       )}
     </div>
   );
-
-  return <div className="tree-node">{renderAccountDetails(node)}</div>;
 };
 
-export default TreeNode;
+export default FileUpload;
