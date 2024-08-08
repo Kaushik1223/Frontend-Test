@@ -1,67 +1,48 @@
 import React, { useState } from 'react';
-import uploadIcon from '../assets/upload-icon.png';
-import { MdOutlineCancel } from "react-icons/md";
-import { useTranslation } from 'react-i18next';
 
-const FileUpload = ({ name, value, onFileSelect, disabled }) => {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const { t } = useTranslation();
+const TreeNode = ({ node, level = 0 }) => {
+  const [expanded, setExpanded] = useState(false);
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-    const isPdf = file && file.type === 'application/pdf';
-    const isCsv = file && file.type === 'text/csv';
-    const isExcel = file && (
-      file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
-      file.type === 'application/vnd.ms-excel'
-    );
-
-    if ((name === 'Upload Invoice' && isPdf) ||
-        (name === 'Upload Confirmation' && (isCsv || isExcel))) {
-      setSelectedFile(file);
-      onFileSelect(value, file);
-    } else {
-      alert(t('fileUpload.invalidFileType'));
-    }
-  };
-
-  const removeFile = () => {
-    setSelectedFile(null);
-    onFileSelect(value, null);
+  const handleToggle = () => {
+    setExpanded(!expanded);
   };
 
   return (
-    <div className="file-upload">
-      <label htmlFor={`file-input-${value}`} className="file-label">
-        <h3>{name}</h3>
-        <div className="file-input-container">
-          <img src={uploadIcon} alt="Upload Icon" className="upload-icon" />
-          <span className="file-input-overlay">
-            {t('fileUpload.dragDrop')} <span className="browse">{t('fileUpload.browse')}</span>
-          </span>
-          <input
-            type="file"
-            id={`file-input-${value}`}
-            className="file-input"
-            accept={name === 'Upload Invoice' ? 'application/pdf' : '.csv,.xls,.xlsx'}
-            onChange={handleFileChange}
-            disabled={disabled}
-          />
-          <p className="file-support">{name === 'Upload Invoice' ? t('fileUpload.onlyPDF') : t('fileUpload.onlyCSVnExcel')}</p>
-        </div>
-      </label>
-      {selectedFile && (
-        <div className="selected-file">
-          <h4>{t('fileUpload.selectedFile')}</h4>
-          <ul>
-            <li>
-              {selectedFile.name} <button onClick={removeFile} disabled={disabled}><MdOutlineCancel /></button>
-            </li>
-          </ul>
+    <div className="tree-node">
+      <div className="tree-node-header" onClick={handleToggle}>
+        <span className="expand-icon">{expanded ? '-' : '+'}</span>
+        <span>
+          {level === 0 && `Account No: ${node.Account}`}
+          {level === 1 && `Transaction No: ${node.TransactionNumber}`}
+          {level === 2 && `Type of Confirmation: ${node.Confirmation}`}
+        </span>
+      </div>
+      {expanded && (
+        <div className="content">
+          {level === 2 ? (
+            <table>
+              <thead>
+                <tr>
+                  <th>Excel</th>
+                  <th>PDF</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>{node.Differences.Excel}</td>
+                  <td>{node.Differences.PDF}</td>
+                </tr>
+              </tbody>
+            </table>
+          ) : (
+            (node.Result || []).map((child, index) => (
+              <TreeNode key={index} node={child} level={level + 1} />
+            ))
+          )}
         </div>
       )}
     </div>
   );
 };
 
-export default FileUpload;
+export default TreeNode;
