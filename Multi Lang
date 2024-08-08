@@ -1,20 +1,14 @@
 import React, { useState } from 'react';
 
-const TreeNode = ({ node, level = 0 }) => {
+const TreeNode = ({ node }) => {
   const [expanded, setExpanded] = useState(false);
 
   const toggleExpand = () => {
     setExpanded(!expanded);
   };
 
-  const renderHeading = (label, value) => (
-    <div style={{ marginLeft: `${level * 20}px`, fontWeight: 'bold' }}>
-      {label}: {value}
-    </div>
-  );
-
   const renderDifferencesTable = (differences) => (
-    <table style={{ marginLeft: `${level * 20 + 20}px` }}>
+    <table style={{ marginLeft: '20px' }}>
       <thead>
         <tr>
           <th>Excel</th>
@@ -32,30 +26,32 @@ const TreeNode = ({ node, level = 0 }) => {
     </table>
   );
 
+  const renderAccountDetails = (account) => (
+    <>
+      <div style={{ fontWeight: 'bold' }}>
+        Account no: {account.Account} -
+        {account.Result.map((result, index) => (
+          <div key={index} style={{ marginLeft: '20px' }}>
+            Transaction no: {result['Transaction Number']} -
+            Type of Confirmation: {result.Confirmation} -
+            <span onClick={toggleExpand} style={{ cursor: 'pointer', fontWeight: 'normal' }}>
+              {expanded ? '-' : '+'}
+            </span>
+            {expanded && (
+              <div>
+                Difference:
+                {renderDifferencesTable(result.Differences)}
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </>
+  );
+
   return (
     <div className="tree-node">
-      {node.Account && renderHeading('Account No', node.Account)}
-      {node['Transaction Number'] && renderHeading('Transaction No', node['Transaction Number'])}
-      {node.Confirmation && renderHeading('Type of Confirmation', node.Confirmation)}
-
-      <div className="node-label" onClick={toggleExpand}>
-        {expanded ? '-' : '+'} {node.Account || node['Transaction Number'] || node.Confirmation || 'Differences'}
-      </div>
-
-      {expanded && (
-        <div className="node-children">
-          {node.Result ? (
-            node.Result.map((result, index) => (
-              <TreeNode key={index} node={result} level={level + 1} />
-            ))
-          ) : node.Differences ? (
-            <div>
-              {renderHeading('Difference', '')}
-              {renderDifferencesTable(node.Differences)}
-            </div>
-          ) : null}
-        </div>
-      )}
+      {renderAccountDetails(node)}
     </div>
   );
 };
