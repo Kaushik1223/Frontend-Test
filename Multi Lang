@@ -5,30 +5,24 @@ const handleCancel = async () => {
   setIsCancelling(true);
   setLogs(prevLogs => [...prevLogs, "Cancelling..."]);
 
-  // Function to check for "Cancelled" status in the logs
-  const checkCancellationStatus = () => {
-    const latestLog = logs[logs.length - 1]; // Get the latest log entry
+  // Simulating the cancel process without a backend API for the logs
+  setTimeout(() => {
+    // Simulate adding the "Cancelled" message to the logs
+    setLogs(prevLogs => [...prevLogs, "Cancelled"]);
 
-    if (latestLog === "Cancelled") {
-      clearInterval(pollInterval); // Stop polling
-      setLogs(prevLogs => [...prevLogs, "Reconciliation process cancelled."]);
-      setProgress(0);
-      setIsCancelling(false); // Reset the cancelling state
-      setIsCancelVisible(false); // Hide the Cancel button
-      setDisabled(false); // Re-enable the Reconcile button
-    }
-  };
-
-  // Start polling the logs every 2 seconds
-  const pollInterval = setInterval(checkCancellationStatus, 2000);
+    // Once the "Cancelled" message is added, reset the UI state
+    setProgress(0);
+    setIsCancelling(false); // Stop showing "Cancelling..." message
+    setIsCancelVisible(false); // Hide the Cancel button
+    setDisabled(false); // Enable the Reconcile button
+  }, 2000); // 2 seconds delay to simulate processing time
 
   // Send the cancel request to the backend
   try {
     await fetch(`${config.apiBaseUrl}${config.routes.cancel_seq}`);
   } catch (error) {
     console.error("There was an error cancelling the process!", error);
-    // If there is an error, stop the polling and reset UI state
-    clearInterval(pollInterval);
+    // In case of error, reset the UI state
     setIsCancelling(false);
     setIsCancelVisible(false);
     setDisabled(false);
