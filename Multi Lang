@@ -1,50 +1,34 @@
-import React from 'react';
-import TreeView from './TreeView'; // Ensure TreeView component is imported
-import './Modal.css'; // Import any necessary CSS for styling
-import { useTranslation } from 'react-i18next';
+const handleCancel = async () => {
+  const userConfirmed = window.confirm("Do you want to cancel?");
+  if (!userConfirmed) return;
 
-const Modal = ({ show, onClose, message, children }) => {
-  const { t } = useTranslation();
+  setIsCancelling(true);
+  setLogs(prevLogs => [...prevLogs, "Cancelling..."]);
+  setIsCancelVisible(false);
 
-  if (!show) return null;
+  try {
+    // Initiate the cancellation process
+    await axios.get(`${config.apiBaseUrl}${config.routes.cancel_seq}`);
 
-  const renderContent = () => {
-    // Check if message is available and contains data
-    if (!message || Object.keys(message).length === 0) {
-      return <p>Reconciliation in progress...!!!</p>;
-    } else {
-      return <TreeView data={message} />;
-    }
-  };
-
-  const handleExport = () => {
-    if (!message || Object.keys(message).length === 0) {
-      console.log("No message to export!");
-      return;
-    }
-
-    const element = document.createElement("a");
-    const file = new Blob([JSON.stringify(message)], { type: 'text/plain' });
-    element.href = URL.createObjectURL(file);
-    element.download = "result.txt";
-    document.body.appendChild(element);
-    element.click();
-  };
-
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h2>{t('modal.result')}</h2>
-        <div className="modal-body">
-          {renderContent()} {/* Display either the progress message or the TreeView */}
-        </div>
-        <div className="modal-buttons">
-          <button onClick={onClose} className="close-button">{t('modal.close')}</button>
-          <button onClick={handleExport} className="export-button">{t('modal.export')}</button>
-        </div>
-      </div>
-    </div>
-  );
+    // Poll the logs to check for the cancellation message
+    checkCancellationStatus();
+  } catch (error) {
+    console.error("There was an error!", error);
+    setLogs(prevLogs => [...prevLogs, "Error occurred while cancelling."]);
+    setIsReconcileVisible(true);
+    setDisabled(false);
+    setIsCancelling(false);
+  }
 };
 
-export default Modal;
+const checkCancellationStatus = () => {
+  const interval = setInterval(() => {
+    const logContainsCancelled = events.some(event => event.message.includes("Reconciliation process cancelled."));
+    if (logContainsCancelled) {
+      clearInterval(interval);
+      setIsReconcileVisible(true);
+      setDisabled(false);
+      setIsCancelling(false);
+    }
+  }, 1000); // Check every 1 second
+};
