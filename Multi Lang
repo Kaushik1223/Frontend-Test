@@ -5,33 +5,31 @@ const handleCancel = async () => {
   setIsCancelling(true);
   setLogs(prevLogs => [...prevLogs, "Cancelling..."]);
 
-  // Function to poll for "Cancelled" status
-  const pollForCancellation = async () => {
-    try {
-      const response = await fetch(`${config.apiBaseUrl}${config.routes.progress_log_seq}`);
-      const result = await response.json();
-
-      // Check if the message "Cancelled" is in the logs
-      if (result.logs.some(event => event.message === "Cancelled")) {
-        clearInterval(pollInterval); // Stop polling
-        setLogs(prevLogs => [...prevLogs, "Reconciliation process cancelled."]);
-        setProgress(0);
-        setIsCancelVisible(false);
-        setDisabled(false);
-        setIsCancelling(false); // Reset the cancelling state
-      }
-    } catch (error) {
-      console.error("There was an error!", error);
+  // Wait for 2 seconds before proceeding with cancellation
+  setTimeout(() => {
+    if (intervalId) {
+      clearInterval(intervalId);
+      setIntervalId(null);
     }
-  };
 
-  // Start polling every 2 seconds
-  const pollInterval = setInterval(pollForCancellation, 2000);
+    // Simulate backend cancellation process
+    setLogs(prevLogs => [...prevLogs, "Reconciliation process cancelled."]);
+    setProgress(0);
+    setIsCancelVisible(false);
+    setDisabled(false);
+    setIsCancelling(false); // Reset the cancelling state
 
-  // Send the cancel request to the backend
-  try {
-    await fetch(`${config.apiBaseUrl}${config.routes.cancel_seq}`);
-  } catch (error) {
-    console.error("There was an error cancelling the process!", error);
-  }
+    // Poll the logs for the "Cancelled" message
+    const checkCancelled = () => {
+      const latestLog = logs[logs.length - 1]; // Get the latest log entry
+      if (latestLog === "Reconciliation process cancelled.") {
+        setIsCancelVisible(false);
+        setDisabled(false); // Re-enable the Reconcile button
+      } else {
+        setTimeout(checkCancelled, 1000); // Check again after 1 second
+      }
+    };
+
+    checkCancelled();
+  }, 2000); // 2 seconds delay
 };
