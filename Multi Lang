@@ -1,34 +1,37 @@
 const handleCancel = async () => {
-  const userConfirmed = window.confirm("Do you want to cancel?");
+  const userConfirmed = window.confirm("Are you sure you want to cancel the process?");
   if (!userConfirmed) return;
 
   setIsCancelling(true);
   setLogs(prevLogs => [...prevLogs, "Cancelling..."]);
-  setIsCancelVisible(false);
 
-  try {
-    // Initiate the cancellation process
-    await axios.get(`${config.apiBaseUrl}${config.routes.cancel_seq}`);
+  // Function to poll for "Cancelled" status
+  const pollForCancellation = async () => {
+    try {
+      const response = await fetch(`${config.apiBaseUrl}${config.routes.progress_log_seq}`);
+      const result = await response.json();
 
-    // Poll the logs to check for the cancellation message
-    checkCancellationStatus();
-  } catch (error) {
-    console.error("There was an error!", error);
-    setLogs(prevLogs => [...prevLogs, "Error occurred while cancelling."]);
-    setIsReconcileVisible(true);
-    setDisabled(false);
-    setIsCancelling(false);
-  }
-};
-
-const checkCancellationStatus = () => {
-  const interval = setInterval(() => {
-    const logContainsCancelled = events.some(event => event.message.includes("Reconciliation process cancelled."));
-    if (logContainsCancelled) {
-      clearInterval(interval);
-      setIsReconcileVisible(true);
-      setDisabled(false);
-      setIsCancelling(false);
+      // Check if the message "Cancelled" is in the logs
+      if (result.logs.some(event => event.message === "Cancelled")) {
+        clearInterval(pollInterval); // Stop polling
+        setLogs(prevLogs => [...prevLogs, "Reconciliation process cancelled."]);
+        setProgress(0);
+        setIsCancelVisible(false);
+        setDisabled(false);
+        setIsCancelling(false); // Reset the cancelling state
+      }
+    } catch (error) {
+      console.error("There was an error!", error);
     }
-  }, 1000); // Check every 1 second
+  };
+
+  // Start polling every 2 seconds
+  const pollInterval = setInterval(pollForCancellation, 2000);
+
+  // Send the cancel request to the backend
+  try {
+    await fetch(`${config.apiBaseUrl}${config.routes.cancel_seq}`);
+  } catch (error) {
+    console.error("There was an error cancelling the process!", error);
+  }
 };
