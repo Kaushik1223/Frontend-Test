@@ -13,9 +13,9 @@ const handleCancel = async () => {
       clearInterval(pollInterval); // Stop polling
       setLogs(prevLogs => [...prevLogs, "Reconciliation process cancelled."]);
       setProgress(0);
-      setIsCancelVisible(false);
-      setDisabled(false); // Re-enable the Reconcile button
       setIsCancelling(false); // Reset the cancelling state
+      setIsCancelVisible(false); // Hide the Cancel button
+      setDisabled(false); // Re-enable the Reconcile button
     }
   };
 
@@ -27,5 +27,10 @@ const handleCancel = async () => {
     await fetch(`${config.apiBaseUrl}${config.routes.cancel_seq}`);
   } catch (error) {
     console.error("There was an error cancelling the process!", error);
+    // If there is an error, stop the polling and reset UI state
+    clearInterval(pollInterval);
+    setIsCancelling(false);
+    setIsCancelVisible(false);
+    setDisabled(false);
   }
 };
