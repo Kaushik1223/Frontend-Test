@@ -1,69 +1,45 @@
-import React, { useState } from 'react';
-import uploadIcon from '../assets/upload-icon.png';
-import { MdOutlineCancel } from "react-icons/md";
+import React from 'react';
+import TreeView from './TreeView';
 import { useTranslation } from 'react-i18next';
 
-const FileUpload = ({ name, value, onFileSelect, disabled, fileType }) => {
-  const [selectedFile, setSelectedFile] = useState(null);
+const Modal = ({ show, onClose, message, children, progress }) => {
+  if (!show) return null;
+
   const { t } = useTranslation();
 
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-
-    // Determine supported types based on the fileType prop
-    const supportedTypes = fileType === 'pdf'
-      ? ['application/pdf']
-      : [
-          'text/csv',
-          'application/vnd.ms-excel', // .xls
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-          'application/vnd.ms-excel.sheet.macroEnabled.12', // .xlsm
-          'application/vnd.ms-excel.sheet.binary.macroEnabled.12' // .xlsb
-        ];
-
-    if (file && supportedTypes.includes(file.type)) {
-      setSelectedFile(file);
-      onFileSelect(value, file);
-    } else {
-      alert(`Only ${fileType.toUpperCase()} files are allowed.`);
+  const handleExport = () => {
+    if (!message) {
+      console.log('No message to export!');
+      return;
     }
-  };
-
-  const removeFile = () => {
-    setSelectedFile(null);
-    onFileSelect(value, null);
+    const element = document.createElement("a");
+    const file = new Blob([JSON.stringify(message)], { type: 'text/plain' });
+    element.href = URL.createObjectURL(file);
+    element.download = "result.txt";
+    document.body.appendChild(element);
+    element.click();
   };
 
   return (
-    <div className="file-upload">
-      <label htmlFor={`file-input-${value}`} className="file-label">
-        <h3>{name}</h3>
-        <div className="file-input-container">
-          <img src={uploadIcon} alt="Upload Icon" className="upload-icon" />
-          <span className="file-input-overlay">
-            {t('fileUpload.dragDrop')} <span className="browse">{t('fileUpload.browse')}</span>
-          </span>
-          <input
-            type="file"
-            id={`file-input-${value}`}
-            className="file-input"
-            accept={fileType === 'pdf' ? '.pdf' : '.csv, .xls, .xlsx, .xlsm, .xlsb'}
-            onChange={handleFileChange}
-            disabled={disabled}
-          />
-          <p className="file-support">{fileType === 'pdf' ? 'Only PDF files are allowed.' : 'Only CSV and Excel files are allowed.'}</p>
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h2>{t('modal.result')}</h2>
+        <div className="modal-body">
+          {progress < 100 ? (
+            <p>Reconciliation in progress...!!!</p>
+          ) : (
+            <TreeView data={message} />
+          )}
         </div>
-      </label>
-      {selectedFile && (
-        <div className="selected-file">
-          <h4>Selected File:</h4>
-          <ul>
-            <li>{selectedFile.name} <button onClick={removeFile} disabled={disabled}><MdOutlineCancel /></button></li>
-          </ul>
+        <div className="modal-buttons">
+          <button onClick={onClose} className="close-button">{t('modal.close')}</button>
+          {progress >= 100 && (
+            <button onClick={handleExport} className="export-button">{t('modal.export')}</button>
+          )}
         </div>
-      )}
+      </div>
     </div>
   );
 };
 
-export default FileUpload;
+export default Modal;
