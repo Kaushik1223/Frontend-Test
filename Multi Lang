@@ -1,39 +1,34 @@
-.tree-node {
-  margin-bottom: 10px;
-}
+const Modal = ({ show, onClose, message, children }) => {
+  if (!show) return null;
 
-.account-header,
-.transaction-header,
-.confirmation-header,
-.difference-header {
-  font-weight: bold;
-  cursor: pointer;
-  font-size: 1.2rem;
-  margin-bottom: 5px;
-}
+  const { t } = useTranslation();
 
-.account-details,
-.transaction-details,
-.confirmation-details {
-  margin-left: 20px;
-  margin-bottom: 10px;
-}
+  const handleExport = () => {
+    if (!message) {
+      console.error("No message to export!");
+      return;
+    }
 
-.differences-table {
-  margin-left: 20px;
-  border-collapse: collapse;
-  width: 100%;
-}
+    const element = document.createElement("a");
+    console.log(message);  // This should output your data or a fallback
 
-.differences-table th,
-.differences-table td {
-  border: 1px solid #ddd;
-  padding: 8px;
-}
+    // Ensure message is stringified correctly
+    const file = new Blob([JSON.stringify(message, null, 2)], { type: 'text/plain' });
 
-.differences-table th {
-  padding-top: 12px;
-  padding-bottom: 12px;
-  text-align: left;
-  background-color: #f2f2f2;
-}
+    element.href = URL.createObjectURL(file);
+    element.download = "result.txt";
+    document.body.appendChild(element);
+    element.click();
+
+    // Clean up
+    document.body.removeChild(element);
+  };
+
+  return (
+    <div className="modal">
+      {/* Modal Content */}
+      {children}
+      <button onClick={handleExport}>Export</button>
+    </div>
+  );
+};
