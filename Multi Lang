@@ -11,12 +11,28 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled, isMerge
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    if (file && file.type === 'application/pdf') {
+
+    // Define supported file types based on section
+    let supportedTypes = [];
+    if (isMergeComponent) {
+      supportedTypes = ['application/pdf'];
+    } else if (name === "Upload Invoice") {
+      supportedTypes = ['application/pdf'];
+    } else if (name === "Upload Confirmation") {
+      supportedTypes = [
+        'text/csv',
+        'application/vnd.ms-excel', // .xls
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+        'application/vnd.ms-excel.sheet.macroEnabled.12', // .xlsm
+        'application/vnd.ms-excel.sheet.binary.macroEnabled.12' // .xlsb
+      ];
+    }
+
+    if (file && supportedTypes.includes(file.type)) {
       setSelectedFile(file);
-      setMergedPdf(null); // Clear merged PDF if single file is selected
       onFileSelect(value, file);
     } else {
-      alert('Only PDF files are allowed.');
+      alert('Invalid file type.');
     }
   };
 
@@ -26,7 +42,6 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled, isMerge
 
   const handleMergeFileSelect = async (event) => {
     const files = Array.from(event.target.files).filter(file => file.type === 'application/pdf');
-
     if (files.length === 0) {
       alert('Please select PDF files to merge.');
       return;
@@ -34,7 +49,6 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled, isMerge
 
     try {
       const pdfDoc = await PDFDocument.create();
-
       for (const file of files) {
         const existingPdfBytes = await file.arrayBuffer();
         const existingPdfDoc = await PDFDocument.load(existingPdfBytes);
@@ -74,11 +88,12 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled, isMerge
             type="file"
             id={`file-input-${value}`}
             className="file-input"
-            accept=".pdf"
+            accept={isMergeComponent ? '.pdf' : name === 'Upload Invoice' ? '.pdf' : '.csv, .xls, .xlsx, .xlsm, .xlsb'}
             onChange={handleFileChange}
             disabled={disabled}
+            multiple={isMergeComponent} // Allow multiple files if it's the merge component
           />
-          <p className="file-support">Only PDF files are allowed.</p>
+          <p className="file-support">{t('fileUpload.onlyPDFnCSV')}</p>
         </div>
       </label>
       
@@ -117,54 +132,3 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled, isMerge
 };
 
 export default FileUpload;
-
-------------
-
-import React from 'react';
-import FileUpload from './FileUpload';
-
-const App = () => {
-  const handleFileSelect = (value, file) => {
-    console.log("Selected file:", file);
-  };
-
-  const handleFileUpload = (value, file) => {
-    console.log("Uploaded file:", file);
-  };
-
-  return (
-    <div>
-      {/* Upload Invoice - Single file only */}
-      <FileUpload
-        name="Upload Invoice"
-        value="invoice"
-        onFileSelect={handleFileSelect}
-        onFileUpload={handleFileUpload}
-        disabled={false}
-        isMergeComponent={false} // Indicate that this component should not have merge functionality
-      />
-
-      {/* Upload Confirmation - Single file only */}
-      <FileUpload
-        name="Upload Confirmation"
-        value="confirmation"
-        onFileSelect={handleFileSelect}
-        onFileUpload={handleFileUpload}
-        disabled={false}
-        isMergeComponent={false} // Indicate that this component should not have merge functionality
-      />
-
-      {/* Merge PDFs - Single component to handle merging */}
-      <FileUpload
-        name="Merge PDFs"
-        value="merger"
-        onFileSelect={handleFileSelect}
-        onFileUpload={handleFileUpload}
-        disabled={false}
-        isMergeComponent={true} // Indicate that this component should have merge functionality
-      />
-    </div>
-  );
-};
-
-export default App;
