@@ -1,59 +1,47 @@
 import React, { useState } from 'react';
-import PDFMerge from 'pdf-merge'; // Import pdf-merge
+import PDFMerger from 'pdf-merger-js';
 import uploadIcon from '../assets/upload-icon.png'; // Update with your actual path
 import { MdOutlineCancel } from "react-icons/md";
 import { useTranslation } from 'react-i18next';
 
 const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled }) => {
-  const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState([]);
   const [mergedPdf, setMergedPdf] = useState(null);
   const { t } = useTranslation();
 
   const handleFileChange = (event) => {
-    const file = event.target.files[0];
+    const files = Array.from(event.target.files);
+    const pdfFiles = files.filter(file => file.type === 'application/pdf');
 
-    // List of supported file types
-    const supportedTypes = [
-      'application/pdf',
-      'text/csv',
-      'application/vnd.ms-excel', // .xls
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-      'application/vnd.ms-excel.sheet.macroEnabled.12', // .xlsm
-      'application/vnd.ms-excel.sheet.binary.macroEnabled.12' // .xlsb
-    ];
-
-    if (file && supportedTypes.includes(file.type)) {
-      setSelectedFile(file);
-      onFileSelect(value, file);
+    if (pdfFiles.length > 0) {
+      setSelectedFiles(pdfFiles);
+      onFileSelect(value, pdfFiles);
     } else {
-      alert('Only PDF, CSV, and Excel files are allowed.');
+      alert('Only PDF files are allowed.');
     }
   };
 
-  const handleMergeClick = () => {
-    document.getElementById('merge-file-input').click();
-  };
+  const handleMergeClick = async () => {
+    const merger = new PDFMerger();
 
-  const handleMergeFileSelect = async (event) => {
-    const files = Array.from(event.target.files);
-    const pdfMerge = new PDFMerge();
-
-    files.forEach(file => pdfMerge.add(file));
+    for (const file of selectedFiles) {
+      merger.add(file);
+    }
 
     try {
-      const mergedPdfBlob = await pdfMerge.merge();
+      const mergedPdfBlob = await merger.saveAsBlob();
       setMergedPdf(mergedPdfBlob);
       onFileUpload(value, mergedPdfBlob); // Upload the merged PDF
-      setSelectedFile(null); // Reset single file selection
     } catch (error) {
       console.error('Error merging PDFs:', error);
     }
   };
 
-  const removeFile = () => {
-    setSelectedFile(null);
-    setMergedPdf(null);
-    onFileSelect(value, null);
+  const removeFile = (fileIndex) => {
+    const newSelectedFiles = [...selectedFiles];
+    newSelectedFiles.splice(fileIndex, 1);
+    setSelectedFiles(newSelectedFiles);
+    onFileSelect(value, newSelectedFiles);
   };
 
   return (
@@ -69,33 +57,30 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled }) => {
             type="file"
             id={`file-input-${value}`}
             className="file-input"
-            accept=".pdf, .csv, .xls, .xlsx, .xlsm, .xlsb"
+            accept=".pdf"
             onChange={handleFileChange}
             disabled={disabled}
+            multiple
+            style={{ display: 'none' }}
           />
-          <p className="file-support">{t('fileUpload.onlyPDFnCSV')}</p>
+          <p className="file-support">Only PDF files are allowed.</p>
         </div>
       </label>
       
       <div className="merge-section">
         <button onClick={handleMergeClick} className="merge-button" disabled={disabled}>Merge PDFs</button>
-        <input
-          type="file"
-          id="merge-file-input"
-          style={{ display: 'none' }}
-          accept="application/pdf"
-          multiple
-          webkitdirectory=""
-          onChange={handleMergeFileSelect}
-        />
         {mergedPdf && <p>Merged PDF ready to upload.</p>}
       </div>
 
-      {selectedFile && (
-        <div className="selected-file">
-          <h4>Selected File:</h4>
+      {selectedFiles.length > 0 && (
+        <div className="selected-files">
+          <h4>Selected Files:</h4>
           <ul>
-            <li>{selectedFile.name} <button onClick={removeFile} disabled={disabled}><MdOutlineCancel /></button></li>
+            {selectedFiles.map((file, index) => (
+              <li key={index}>
+                {file.name} <button onClick={() => removeFile(index)} disabled={disabled}><MdOutlineCancel /></button>
+              </li>
+            ))}
           </ul>
         </div>
       )}
