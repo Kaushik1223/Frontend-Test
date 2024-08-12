@@ -1,7 +1,7 @@
 import React from 'react';
 import { PDFDocument } from 'pdf-lib';
 
-const MergeButton = ({ onFileUpload }) => {
+const MergeButton = ({ onFileSelect }) => {
 
   const handleMergeClick = () => {
     document.getElementById('merge-file-input').click();
@@ -26,9 +26,10 @@ const MergeButton = ({ onFileUpload }) => {
 
     const mergedPdfBytes = await pdfDoc.save();
     const mergedBlob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+    const mergedFile = new File([mergedBlob], "merged.pdf", { type: 'application/pdf' });
 
     // Automatically upload the merged PDF to the "Upload Invoice" section
-    onFileUpload('invoice', mergedBlob);
+    onFileSelect('invoice', mergedFile);
 
     // Reset the input to allow re-selecting files if needed
     event.target.value = '';
@@ -50,120 +51,3 @@ const MergeButton = ({ onFileUpload }) => {
 };
 
 export default MergeButton;
-
-------------------------
-
-import React, { useState } from 'react';
-import FileUpload from './FileUpload';
-import MergeButton from './MergeButton';
-
-const App = () => {
-  const [invoiceFile, setInvoiceFile] = useState(null);
-  const [confirmationFile, setConfirmationFile] = useState(null);
-
-  const handleFileSelect = (name, file) => {
-    if (name === 'invoice') {
-      setInvoiceFile(file);
-    } else if (name === 'confirmation') {
-      setConfirmationFile(file);
-    }
-  };
-
-  return (
-    <div className="app">
-      <h1>File Upload and Merge PDFs</h1>
-      
-      <FileUpload
-        name="Upload Invoice"
-        value="invoice"
-        onFileSelect={handleFileSelect}
-        disabled={false}
-      />
-
-      <MergeButton onFileUpload={handleFileSelect} />
-
-      <FileUpload
-        name="Upload Confirmation"
-        value="confirmation"
-        onFileSelect={handleFileSelect}
-        disabled={false}
-      />
-
-      {/* Other components or elements */}
-    </div>
-  );
-};
-
-export default App;
-
-----------
-
-
-import React, { useState } from 'react';
-import uploadIcon from '../assets/upload-icon.png';
-import { MdOutlineCancel } from "react-icons/md";
-import { useTranslation } from 'react-i18next';
-
-const FileUpload = ({ name, value, onFileSelect, disabled }) => {
-  const [selectedFile, setSelectedFile] = useState(null);
-  const { t } = useTranslation();
-
-  const handleFileChange = (event) => {
-    const file = event.target.files[0];
-
-    // List of supported file types
-    const supportedTypes = [
-      'application/pdf',
-      'text/csv',
-      'application/vnd.ms-excel', // .xls
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-      'application/vnd.ms-excel.sheet.macroEnabled.12', // .xlsm
-      'application/vnd.ms-excel.sheet.binary.macroEnabled.12' // .xlsb
-    ];
-
-    if (file && supportedTypes.includes(file.type)) {
-      setSelectedFile(file);
-      onFileSelect(value, file);
-    } else {
-      alert('Only PDF, CSV, and Excel files are allowed.');
-    }
-  };
-
-  const removeFile = () => {
-    setSelectedFile(null);
-    onFileSelect(value, null);
-  };
-
-  return (
-    <div className="file-upload">
-      <label htmlFor={`file-input-${value}`} className="file-label">
-        <h3>{name}</h3>
-        <div className="file-input-container">
-          <img src={uploadIcon} alt="Upload Icon" className="upload-icon" />
-          <span className="file-input-overlay">
-            {t('fileUpload.dragDrop')} <span className="browse">{t('fileUpload.browse')}</span>
-          </span>
-          <input
-            type="file"
-            id={`file-input-${value}`}
-            className="file-input"
-            accept=".pdf, .csv, .xls, .xlsx, .xlsm, .xlsb"
-            onChange={handleFileChange}
-            disabled={disabled}
-          />
-          <p className="file-support">{t('fileUpload.onlyPDFnCSV')}</p>
-        </div>
-      </label>
-      {selectedFile && (
-        <div className="selected-file">
-          <h4>Selected File:</h4>
-          <ul>
-            <li>{selectedFile.name} <button onClick={removeFile} disabled={disabled}><MdOutlineCancel /></button></li>
-          </ul>
-        </div>
-      )}
-    </div>
-  );
-};
-
-export default FileUpload;
