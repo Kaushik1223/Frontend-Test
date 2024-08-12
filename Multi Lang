@@ -11,22 +11,12 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled }) => {
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-
-    // List of supported file types
-    const supportedTypes = [
-      'application/pdf',
-      'text/csv',
-      'application/vnd.ms-excel', // .xls
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-      'application/vnd.ms-excel.sheet.macroEnabled.12', // .xlsm
-      'application/vnd.ms-excel.sheet.binary.macroEnabled.12' // .xlsb
-    ];
-
-    if (file && supportedTypes.includes(file.type)) {
+    if (file && file.type === 'application/pdf') {
       setSelectedFile(file);
+      setMergedPdf(null); // Clear merged PDF if single file is selected
       onFileSelect(value, file);
     } else {
-      alert('Only PDF, CSV, and Excel files are allowed.');
+      alert('Only PDF files are allowed.');
     }
   };
 
@@ -57,10 +47,9 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled }) => {
       const mergedFile = new File([mergedBlob], 'merged.pdf', { type: 'application/pdf' });
 
       setMergedPdf(URL.createObjectURL(mergedBlob));
+      setSelectedFile(mergedFile); // Set merged file as selected file
       onFileUpload(value, mergedFile); // Upload the merged PDF
 
-      // Clear selected files and update state
-      setSelectedFile(null);
     } catch (error) {
       console.error('Error merging PDFs:', error);
     }
@@ -85,7 +74,7 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled }) => {
             type="file"
             id={`file-input-${value}`}
             className="file-input"
-            accept=".pdf, .csv, .xls, .xlsx, .xlsm, .xlsb"
+            accept=".pdf"
             onChange={handleFileChange}
             disabled={disabled}
           />
@@ -112,6 +101,15 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled }) => {
           </div>
         )}
       </div>
+
+      {selectedFile && !mergedPdf && (
+        <div className="selected-file">
+          <h4>Selected File:</h4>
+          <ul>
+            <li>{selectedFile.name} <button onClick={removeFile} disabled={disabled}><MdOutlineCancel /></button></li>
+          </ul>
+        </div>
+      )}
     </div>
   );
 };
