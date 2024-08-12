@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PDFDocument } from 'pdf-lib'; // Import pdf-lib
 import uploadIcon from '../assets/upload-icon.png'; // Update with your actual path
 import { MdOutlineCancel } from "react-icons/md";
 import { useTranslation } from 'react-i18next';
@@ -10,7 +11,7 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled }) => {
 
   const handleFileChange = (event) => {
     const files = Array.from(event.target.files).filter(file => file.type === 'application/pdf');
-
+    
     if (files.length > 0) {
       setSelectedFiles(files);
       onFileSelect(value, files);
@@ -20,20 +21,20 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled }) => {
   };
 
   const handleMergeClick = async () => {
-    const formData = new FormData();
-    selectedFiles.forEach(file => formData.append('files', file));
-
     try {
-      const response = await fetch('/merge-pdfs', {
-        method: 'POST',
-        body: formData,
-      });
+      const pdfDoc = await PDFDocument.create();
 
-      if (!response.ok) throw new Error('Network response was not ok');
+      for (const file of selectedFiles) {
+        const existingPdfBytes = await file.arrayBuffer();
+        const existingPdfDoc = await PDFDocument.load(existingPdfBytes);
+        const copiedPages = await pdfDoc.copyPages(existingPdfDoc, existingPdfDoc.getPageIndices());
+        copiedPages.forEach((page) => pdfDoc.addPage(page));
+      }
 
-      const blob = await response.blob();
-      setMergedPdf(URL.createObjectURL(blob));
-      onFileUpload(value, blob); // Upload the merged PDF
+      const mergedPdfBytes = await pdfDoc.save();
+      const mergedBlob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+      setMergedPdf(URL.createObjectURL(mergedBlob));
+      onFileUpload(value, mergedBlob); // Upload the merged PDF
     } catch (error) {
       console.error('Error merging PDFs:', error);
     }
@@ -67,7 +68,7 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled }) => {
           <p className="file-support">Only PDF files are allowed.</p>
         </div>
       </label>
-
+      
       <div className="merge-section">
         <button onClick={handleMergeClick} className="merge-button" disabled={disabled}>Merge PDFs</button>
         {mergedPdf && <a href={mergedPdf} download="merged.pdf">Download Merged PDF</a>}
