@@ -1,77 +1,35 @@
 import React, { useState } from 'react';
-import { PDFDocument } from 'pdf-lib'; // Import pdf-lib
-import uploadIcon from '../assets/upload-icon.png'; // Update with your actual path
 import { MdOutlineCancel } from "react-icons/md";
+import uploadIcon from '../assets/upload-icon.png'; 
 import { useTranslation } from 'react-i18next';
 
-const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled, isMergeComponent }) => {
+const FileUpload = ({ name, value, onFileSelect, disabled, fileType }) => {
   const [selectedFile, setSelectedFile] = useState(null);
-  const [mergedPdf, setMergedPdf] = useState(null);
   const { t } = useTranslation();
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
 
-    // Define supported file types based on section
-    let supportedTypes = [];
-    if (isMergeComponent) {
-      supportedTypes = ['application/pdf'];
-    } else if (name === "Upload Invoice") {
-      supportedTypes = ['application/pdf'];
-    } else if (name === "Upload Confirmation") {
-      supportedTypes = [
-        'text/csv',
-        'application/vnd.ms-excel', // .xls
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-        'application/vnd.ms-excel.sheet.macroEnabled.12', // .xlsm
-        'application/vnd.ms-excel.sheet.binary.macroEnabled.12' // .xlsb
-      ];
-    }
+    const supportedTypes = fileType === 'pdf'
+      ? ['application/pdf']
+      : [
+          'text/csv',
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+          'application/vnd.ms-excel.sheet.macroEnabled.12',
+          'application/vnd.ms-excel.sheet.binary.macroEnabled.12'
+        ];
 
     if (file && supportedTypes.includes(file.type)) {
       setSelectedFile(file);
       onFileSelect(value, file);
     } else {
-      alert('Invalid file type.');
-    }
-  };
-
-  const handleMergeClick = () => {
-    document.getElementById('merge-file-input').click();
-  };
-
-  const handleMergeFileSelect = async (event) => {
-    const files = Array.from(event.target.files).filter(file => file.type === 'application/pdf');
-    if (files.length === 0) {
-      alert('Please select PDF files to merge.');
-      return;
-    }
-
-    try {
-      const pdfDoc = await PDFDocument.create();
-      for (const file of files) {
-        const existingPdfBytes = await file.arrayBuffer();
-        const existingPdfDoc = await PDFDocument.load(existingPdfBytes);
-        const copiedPages = await pdfDoc.copyPages(existingPdfDoc, existingPdfDoc.getPageIndices());
-        copiedPages.forEach((page) => pdfDoc.addPage(page));
-      }
-
-      const mergedPdfBytes = await pdfDoc.save();
-      const mergedBlob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
-      const mergedFile = new File([mergedBlob], 'merged.pdf', { type: 'application/pdf' });
-
-      setMergedPdf(URL.createObjectURL(mergedBlob));
-      setSelectedFile(mergedFile); // Set merged file as selected file
-      onFileUpload(value, mergedFile); // Upload the merged PDF
-
-    } catch (error) {
-      console.error('Error merging PDFs:', error);
+      alert(`Only ${fileType.toUpperCase()} files are allowed.`);
     }
   };
 
   const removeFile = () => {
     setSelectedFile(null);
-    setMergedPdf(null);
     onFileSelect(value, null);
   };
 
@@ -88,38 +46,14 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled, isMerge
             type="file"
             id={`file-input-${value}`}
             className="file-input"
-            accept={isMergeComponent ? '.pdf' : name === 'Upload Invoice' ? '.pdf' : '.csv, .xls, .xlsx, .xlsm, .xlsb'}
+            accept={fileType === 'pdf' ? '.pdf' : '.csv, .xls, .xlsx, .xlsm, .xlsb'}
             onChange={handleFileChange}
             disabled={disabled}
-            multiple={isMergeComponent} // Allow multiple files if it's the merge component
           />
-          <p className="file-support">{t('fileUpload.onlyPDFnCSV')}</p>
+          <p className="file-support">{fileType === 'pdf' ? 'Only PDF files are allowed.' : 'Only CSV and Excel files are allowed.'}</p>
         </div>
       </label>
-      
-      {isMergeComponent && (
-        <div className="merge-section">
-          <button onClick={handleMergeClick} className="merge-button" disabled={disabled}>Merge PDFs</button>
-          <input
-            type="file"
-            id="merge-file-input"
-            style={{ display: 'none' }}
-            accept="application/pdf"
-            multiple
-            onChange={handleMergeFileSelect}
-          />
-          {mergedPdf && (
-            <div className="selected-file">
-              <h4>Merged File:</h4>
-              <ul>
-                <li>merged.pdf <button onClick={removeFile} disabled={disabled}><MdOutlineCancel /></button></li>
-              </ul>
-            </div>
-          )}
-        </div>
-      )}
-
-      {!isMergeComponent && selectedFile && !mergedPdf && (
+      {selectedFile && (
         <div className="selected-file">
           <h4>Selected File:</h4>
           <ul>
