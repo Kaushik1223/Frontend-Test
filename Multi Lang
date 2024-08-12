@@ -1,26 +1,106 @@
-.cancelling-animation {
-  font-weight: bold;
-  font-size: 16px;
-  display: inline-block;
-}
+import React, { useState } from 'react';
+import PDFMerge from 'pdf-merge'; // Import pdf-merge
+import uploadIcon from '../assets/upload-icon.png'; // Update with your actual path
+import { MdOutlineCancel } from "react-icons/md";
+import { useTranslation } from 'react-i18next';
 
-.cancelling-animation::after {
-  content: '...';
-  display: inline-block;
-  animation: ellipsis 1.5s infinite;
-}
+const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled }) => {
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [mergedPdf, setMergedPdf] = useState(null);
+  const { t } = useTranslation();
 
-@keyframes ellipsis {
-  0% {
-    content: '.';
-  }
-  33% {
-    content: '..';
-  }
-  66% {
-    content: '...';
-  }
-  100% {
-    content: '';
-  }
-}
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+
+    // List of supported file types
+    const supportedTypes = [
+      'application/pdf',
+      'text/csv',
+      'application/vnd.ms-excel', // .xls
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+      'application/vnd.ms-excel.sheet.macroEnabled.12', // .xlsm
+      'application/vnd.ms-excel.sheet.binary.macroEnabled.12' // .xlsb
+    ];
+
+    if (file && supportedTypes.includes(file.type)) {
+      setSelectedFile(file);
+      onFileSelect(value, file);
+    } else {
+      alert('Only PDF, CSV, and Excel files are allowed.');
+    }
+  };
+
+  const handleMergeClick = () => {
+    document.getElementById('merge-file-input').click();
+  };
+
+  const handleMergeFileSelect = async (event) => {
+    const files = Array.from(event.target.files);
+    const pdfMerge = new PDFMerge();
+
+    files.forEach(file => pdfMerge.add(file));
+
+    try {
+      const mergedPdfBlob = await pdfMerge.merge();
+      setMergedPdf(mergedPdfBlob);
+      onFileUpload(value, mergedPdfBlob); // Upload the merged PDF
+      setSelectedFile(null); // Reset single file selection
+    } catch (error) {
+      console.error('Error merging PDFs:', error);
+    }
+  };
+
+  const removeFile = () => {
+    setSelectedFile(null);
+    setMergedPdf(null);
+    onFileSelect(value, null);
+  };
+
+  return (
+    <div className="file-upload">
+      <label htmlFor={`file-input-${value}`} className="file-label">
+        <h3>{name}</h3>
+        <div className="file-input-container">
+          <img src={uploadIcon} alt="Upload Icon" className="upload-icon" />
+          <span className="file-input-overlay">
+            {t('fileUpload.dragDrop')} <span className="browse">{t('fileUpload.browse')}</span>
+          </span>
+          <input
+            type="file"
+            id={`file-input-${value}`}
+            className="file-input"
+            accept=".pdf, .csv, .xls, .xlsx, .xlsm, .xlsb"
+            onChange={handleFileChange}
+            disabled={disabled}
+          />
+          <p className="file-support">{t('fileUpload.onlyPDFnCSV')}</p>
+        </div>
+      </label>
+      
+      <div className="merge-section">
+        <button onClick={handleMergeClick} className="merge-button" disabled={disabled}>Merge PDFs</button>
+        <input
+          type="file"
+          id="merge-file-input"
+          style={{ display: 'none' }}
+          accept="application/pdf"
+          multiple
+          webkitdirectory=""
+          onChange={handleMergeFileSelect}
+        />
+        {mergedPdf && <p>Merged PDF ready to upload.</p>}
+      </div>
+
+      {selectedFile && (
+        <div className="selected-file">
+          <h4>Selected File:</h4>
+          <ul>
+            <li>{selectedFile.name} <button onClick={removeFile} disabled={disabled}><MdOutlineCancel /></button></li>
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default FileUpload;
