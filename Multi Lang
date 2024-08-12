@@ -1,32 +1,136 @@
 import React from 'react';
+import { PDFDocument } from 'pdf-lib';
+
+const MergeButton = ({ onFileUpload }) => {
+
+  const handleMergeClick = () => {
+    document.getElementById('merge-file-input').click();
+  };
+
+  const handleMergeFileSelect = async (event) => {
+    const files = event.target.files;
+
+    if (files.length < 2) {
+      alert("Please select at least two PDF files to merge.");
+      return;
+    }
+
+    const pdfDoc = await PDFDocument.create();
+
+    for (const file of files) {
+      const existingPdfBytes = await file.arrayBuffer();
+      const existingPdf = await PDFDocument.load(existingPdfBytes);
+      const copiedPages = await pdfDoc.copyPages(existingPdf, existingPdf.getPageIndices());
+      copiedPages.forEach((page) => pdfDoc.addPage(page));
+    }
+
+    const mergedPdfBytes = await pdfDoc.save();
+    const mergedBlob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+
+    // Automatically upload the merged PDF to the "Upload Invoice" section
+    onFileUpload('invoice', mergedBlob);
+
+    // Reset the input to allow re-selecting files if needed
+    event.target.value = '';
+  };
+
+  return (
+    <div className="merge-section">
+      <button onClick={handleMergeClick} className="merge-button">Merge PDFs</button>
+      <input
+        type="file"
+        id="merge-file-input"
+        style={{ display: 'none' }}
+        accept="application/pdf"
+        multiple
+        onChange={handleMergeFileSelect}
+      />
+    </div>
+  );
+};
+
+export default MergeButton;
+
+------------------------
+
+import React, { useState } from 'react';
+import FileUpload from './FileUpload';
+import MergeButton from './MergeButton';
+
+const App = () => {
+  const [invoiceFile, setInvoiceFile] = useState(null);
+  const [confirmationFile, setConfirmationFile] = useState(null);
+
+  const handleFileSelect = (name, file) => {
+    if (name === 'invoice') {
+      setInvoiceFile(file);
+    } else if (name === 'confirmation') {
+      setConfirmationFile(file);
+    }
+  };
+
+  return (
+    <div className="app">
+      <h1>File Upload and Merge PDFs</h1>
+      
+      <FileUpload
+        name="Upload Invoice"
+        value="invoice"
+        onFileSelect={handleFileSelect}
+        disabled={false}
+      />
+
+      <MergeButton onFileUpload={handleFileSelect} />
+
+      <FileUpload
+        name="Upload Confirmation"
+        value="confirmation"
+        onFileSelect={handleFileSelect}
+        disabled={false}
+      />
+
+      {/* Other components or elements */}
+    </div>
+  );
+};
+
+export default App;
+
+----------
+
+
+import React, { useState } from 'react';
+import uploadIcon from '../assets/upload-icon.png';
 import { MdOutlineCancel } from "react-icons/md";
-import uploadIcon from '../assets/upload-icon.png'; 
 import { useTranslation } from 'react-i18next';
 
-const FileUpload = ({ name, value, onFileSelect, disabled, fileType, selectedFile }) => {
+const FileUpload = ({ name, value, onFileSelect, disabled }) => {
+  const [selectedFile, setSelectedFile] = useState(null);
   const { t } = useTranslation();
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
 
-    const supportedTypes = fileType === 'pdf'
-      ? ['application/pdf']
-      : [
-          'text/csv',
-          'application/vnd.ms-excel',
-          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-          'application/vnd.ms-excel.sheet.macroEnabled.12',
-          'application/vnd.ms-excel.sheet.binary.macroEnabled.12'
-        ];
+    // List of supported file types
+    const supportedTypes = [
+      'application/pdf',
+      'text/csv',
+      'application/vnd.ms-excel', // .xls
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+      'application/vnd.ms-excel.sheet.macroEnabled.12', // .xlsm
+      'application/vnd.ms-excel.sheet.binary.macroEnabled.12' // .xlsb
+    ];
 
     if (file && supportedTypes.includes(file.type)) {
+      setSelectedFile(file);
       onFileSelect(value, file);
     } else {
-      alert(`Only ${fileType.toUpperCase()} files are allowed.`);
+      alert('Only PDF, CSV, and Excel files are allowed.');
     }
   };
 
   const removeFile = () => {
+    setSelectedFile(null);
     onFileSelect(value, null);
   };
 
@@ -43,11 +147,11 @@ const FileUpload = ({ name, value, onFileSelect, disabled, fileType, selectedFil
             type="file"
             id={`file-input-${value}`}
             className="file-input"
-            accept={fileType === 'pdf' ? '.pdf' : '.csv, .xls, .xlsx, .xlsm, .xlsb'}
+            accept=".pdf, .csv, .xls, .xlsx, .xlsm, .xlsb"
             onChange={handleFileChange}
             disabled={disabled}
           />
-          <p className="file-support">{fileType === 'pdf' ? 'Only PDF files are allowed.' : 'Only CSV and Excel files are allowed.'}</p>
+          <p className="file-support">{t('fileUpload.onlyPDFnCSV')}</p>
         </div>
       </label>
       {selectedFile && (
@@ -63,49 +167,3 @@ const FileUpload = ({ name, value, onFileSelect, disabled, fileType, selectedFil
 };
 
 export default FileUpload;
-
-----------
-
-import React, { useState } from 'react';
-import FileUpload from './FileUpload';
-import MergeButton from './MergeButton';
-
-const App = () => {
-  const [uploadedFiles, setUploadedFiles] = useState({ invoice: null, confirmation: null });
-
-  const handleFileSelect = (value, file) => {
-    setUploadedFiles(prevFiles => ({
-      ...prevFiles,
-      [value]: file,
-    }));
-  };
-
-  return (
-    <div>
-      <h2>Upload Files</h2>
-
-      {/* Upload Invoice - PDF only */}
-      <FileUpload
-        name="Upload Invoice"
-        value="invoice"
-        onFileSelect={handleFileSelect}
-        fileType="pdf"
-        selectedFile={uploadedFiles.invoice}
-      />
-
-      {/* Upload Confirmation - CSV and Excel */}
-      <FileUpload
-        name="Upload Confirmation"
-        value="confirmation"
-        onFileSelect={handleFileSelect}
-        fileType="csv-excel"
-        selectedFile={uploadedFiles.confirmation}
-      />
-
-      {/* Merge PDFs Button */}
-      <MergeButton onFileUpload={handleFileSelect} />
-    </div>
-  );
-};
-
-export default App;
