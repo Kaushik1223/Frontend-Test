@@ -9,45 +9,49 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled }) => {
   const [mergedPdf, setMergedPdf] = useState(null);
   const { t } = useTranslation();
 
-  const handleFileChange = async (event) => {
-    const files = Array.from(event.target.files);
-
-    if (files.length === 1) {
-      const file = files[0];
-      if (file.type === 'application/pdf') {
-        // Single file upload
-        setSelectedFile(file);
-        setMergedPdf(null);
-        onFileSelect(value, file);
-      } else {
-        alert('Only PDF files are allowed.');
-      }
-    } else if (files.length > 1) {
-      // Handle multiple files for merging
-      try {
-        const pdfDoc = await PDFDocument.create();
-        
-        for (const file of files) {
-          if (file.type === 'application/pdf') {
-            const existingPdfBytes = await file.arrayBuffer();
-            const existingPdfDoc = await PDFDocument.load(existingPdfBytes);
-            const copiedPages = await pdfDoc.copyPages(existingPdfDoc, existingPdfDoc.getPageIndices());
-            copiedPages.forEach((page) => pdfDoc.addPage(page));
-          }
-        }
-        
-        const mergedPdfBytes = await pdfDoc.save();
-        const mergedBlob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
-        const mergedFile = new File([mergedBlob], 'merged.pdf', { type: 'application/pdf' });
-
-        setMergedPdf(URL.createObjectURL(mergedBlob));
-        setSelectedFile(mergedFile); // Set merged file as selected file
-        onFileUpload(value, mergedFile); // Upload the merged PDF
-      } catch (error) {
-        console.error('Error merging PDFs:', error);
-      }
+  const handleSingleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file && file.type === 'application/pdf') {
+      setSelectedFile(file);
+      setMergedPdf(null); // Clear merged PDF if single file is selected
+      onFileSelect(value, file);
     } else {
-      alert('Please select a file.');
+      alert('Only PDF files are allowed.');
+    }
+  };
+
+  const handleMergeClick = () => {
+    document.getElementById('merge-file-input').click();
+  };
+
+  const handleMergeFileSelect = async (event) => {
+    const files = Array.from(event.target.files).filter(file => file.type === 'application/pdf');
+
+    if (files.length === 0) {
+      alert('Please select PDF files to merge.');
+      return;
+    }
+
+    try {
+      const pdfDoc = await PDFDocument.create();
+
+      for (const file of files) {
+        const existingPdfBytes = await file.arrayBuffer();
+        const existingPdfDoc = await PDFDocument.load(existingPdfBytes);
+        const copiedPages = await pdfDoc.copyPages(existingPdfDoc, existingPdfDoc.getPageIndices());
+        copiedPages.forEach((page) => pdfDoc.addPage(page));
+      }
+
+      const mergedPdfBytes = await pdfDoc.save();
+      const mergedBlob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+      const mergedFile = new File([mergedBlob], 'merged.pdf', { type: 'application/pdf' });
+
+      setMergedPdf(URL.createObjectURL(mergedBlob));
+      setSelectedFile(mergedFile); // Set merged file as selected file
+      onFileUpload(value, mergedFile); // Upload the merged PDF
+
+    } catch (error) {
+      console.error('Error merging PDFs:', error);
     }
   };
 
@@ -58,44 +62,58 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled }) => {
   };
 
   return (
-    <div className="file-upload">
-      <label htmlFor={`file-input-${value}`} className="file-label">
-        <h3>{name}</h3>
-        <div className="file-input-container">
-          <img src={uploadIcon} alt="Upload Icon" className="upload-icon" />
-          <span className="file-input-overlay">
-            {t('fileUpload.dragDrop')} <span className="browse">{t('fileUpload.browse')}</span>
-          </span>
-          <input
-            type="file"
-            id={`file-input-${value}`}
-            className="file-input"
-            accept=".pdf"
-            onChange={handleFileChange}
-            disabled={disabled}
-            multiple
-          />
-          <p className="file-support">Only PDF files are allowed.</p>
-        </div>
-      </label>
+    <div>
+      {/* Merge PDFs button */}
+      <button onClick={handleMergeClick} className="merge-button" disabled={disabled}>Merge PDFs</button>
+      
+      <div className="file-upload">
+        <label htmlFor={`file-input-${value}`} className="file-label">
+          <h3>{name}</h3>
+          <div className="file-input-container">
+            <img src={uploadIcon} alt="Upload Icon" className="upload-icon" />
+            <span className="file-input-overlay">
+              {t('fileUpload.dragDrop')} <span className="browse">{t('fileUpload.browse')}</span>
+            </span>
+            <input
+              type="file"
+              id={`file-input-${value}`}
+              className="file-input"
+              accept=".pdf"
+              onChange={handleSingleFileChange}
+              disabled={disabled}
+            />
+            <p className="file-support">Only PDF files are allowed.</p>
+          </div>
+        </label>
+        
+        {selectedFile && !mergedPdf && (
+          <div className="selected-file">
+            <h4>Selected File:</h4>
+            <ul>
+              <li>{selectedFile.name} <button onClick={removeFile} disabled={disabled}><MdOutlineCancel /></button></li>
+            </ul>
+          </div>
+        )}
 
-      {mergedPdf && (
-        <div className="selected-file">
-          <h4>Merged File:</h4>
-          <ul>
-            <li>merged.pdf <button onClick={removeFile} disabled={disabled}><MdOutlineCancel /></button></li>
-          </ul>
-        </div>
-      )}
+        {mergedPdf && (
+          <div className="selected-file">
+            <h4>Merged File:</h4>
+            <ul>
+              <li>merged.pdf <button onClick={removeFile} disabled={disabled}><MdOutlineCancel /></button></li>
+            </ul>
+          </div>
+        )}
+      </div>
 
-      {selectedFile && !mergedPdf && (
-        <div className="selected-file">
-          <h4>Selected File:</h4>
-          <ul>
-            <li>{selectedFile.name} <button onClick={removeFile} disabled={disabled}><MdOutlineCancel /></button></li>
-          </ul>
-        </div>
-      )}
+      {/* Hidden input for merging PDFs */}
+      <input
+        type="file"
+        id="merge-file-input"
+        style={{ display: 'none' }}
+        accept="application/pdf"
+        multiple
+        onChange={handleMergeFileSelect}
+      />
     </div>
   );
 };
