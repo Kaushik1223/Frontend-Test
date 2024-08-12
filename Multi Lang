@@ -3,6 +3,7 @@ import { PDFDocument } from 'pdf-lib'; // Import pdf-lib
 import uploadIcon from '../assets/upload-icon.png'; // Update with your actual path
 import { MdOutlineCancel } from "react-icons/md";
 import { useTranslation } from 'react-i18next';
+import MergeButton from './MergeButton'; // Import the new component
 
 const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled }) => {
   const [selectedFile, setSelectedFile] = useState(null);
@@ -64,8 +65,8 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled }) => {
   return (
     <div>
       {/* Merge PDFs button */}
-      <button onClick={handleMergeClick} className="merge-button" disabled={disabled}>Merge PDFs</button>
-      
+      <MergeButton onClick={handleMergeClick} disabled={disabled} />
+
       <div className="file-upload">
         <label htmlFor={`file-input-${value}`} className="file-label">
           <h3>{name}</h3>
@@ -85,7 +86,7 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled }) => {
             <p className="file-support">Only PDF files are allowed.</p>
           </div>
         </label>
-        
+
         {selectedFile && !mergedPdf && (
           <div className="selected-file">
             <h4>Selected File:</h4>
