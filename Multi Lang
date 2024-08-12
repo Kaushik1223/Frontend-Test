@@ -1,30 +1,26 @@
-const handleCancel = async () => {
-  const userConfirmed = window.confirm("Are you sure you want to cancel the process?");
-  if (!userConfirmed) return;
+.cancelling-animation {
+  font-weight: bold;
+  font-size: 16px;
+  display: inline-block;
+}
 
-  setIsCancelling(true);
-  setLogs(prevLogs => [...prevLogs, "Cancelling..."]);
+.cancelling-animation::after {
+  content: '...';
+  display: inline-block;
+  animation: ellipsis 1.5s infinite;
+}
 
-  // Simulating the cancel process without a backend API for the logs
-  setTimeout(() => {
-    // Simulate adding the "Cancelled" message to the logs
-    setLogs(prevLogs => [...prevLogs, "Cancelled"]);
-
-    // Once the "Cancelled" message is added, reset the UI state
-    setProgress(0);
-    setIsCancelling(false); // Stop showing "Cancelling..." message
-    setIsCancelVisible(false); // Hide the Cancel button
-    setDisabled(false); // Enable the Reconcile button
-  }, 2000); // 2 seconds delay to simulate processing time
-
-  // Send the cancel request to the backend
-  try {
-    await fetch(`${config.apiBaseUrl}${config.routes.cancel_seq}`);
-  } catch (error) {
-    console.error("There was an error cancelling the process!", error);
-    // In case of error, reset the UI state
-    setIsCancelling(false);
-    setIsCancelVisible(false);
-    setDisabled(false);
+@keyframes ellipsis {
+  0% {
+    content: '.';
   }
-};
+  33% {
+    content: '..';
+  }
+  66% {
+    content: '...';
+  }
+  100% {
+    content: '';
+  }
+}
