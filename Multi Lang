@@ -1,3 +1,15 @@
+import React from 'react';
+
+const MergeButton = ({ onClick, disabled }) => {
+  return (
+    <button onClick={onClick} className="merge-button" disabled={disabled}>
+      Merge PDFs
+    </button>
+  );
+};
+
+export default MergeButton;
+
 import React, { useState } from 'react';
 import { PDFDocument } from 'pdf-lib'; // Import pdf-lib
 import uploadIcon from '../assets/upload-icon.png'; // Update with your actual path
