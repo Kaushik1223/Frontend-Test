@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import PDFMerger from 'pdf-merger-js';
+import PDFMerger from 'pdf-merger-js'; // Import pdf-merger-js
 import uploadIcon from '../assets/upload-icon.png'; // Update with your actual path
 import { MdOutlineCancel } from "react-icons/md";
 import { useTranslation } from 'react-i18next';
@@ -10,26 +10,23 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled }) => {
   const { t } = useTranslation();
 
   const handleFileChange = (event) => {
-    const files = Array.from(event.target.files);
-    const pdfFiles = files.filter(file => file.type === 'application/pdf');
-
-    if (pdfFiles.length > 0) {
-      setSelectedFiles(pdfFiles);
-      onFileSelect(value, pdfFiles);
+    const files = Array.from(event.target.files).filter(file => file.type === 'application/pdf');
+    
+    if (files.length > 0) {
+      setSelectedFiles(files);
+      onFileSelect(value, files);
     } else {
       alert('Only PDF files are allowed.');
     }
   };
 
   const handleMergeClick = async () => {
-    const merger = new PDFMerger();
+    const pdfMerger = new PDFMerger();
 
-    for (const file of selectedFiles) {
-      merger.add(file);
-    }
+    selectedFiles.forEach(file => pdfMerger.add(file));
 
     try {
-      const mergedPdfBlob = await merger.saveAsBlob();
+      const mergedPdfBlob = await pdfMerger.saveAsBlob();
       setMergedPdf(mergedPdfBlob);
       onFileUpload(value, mergedPdfBlob); // Upload the merged PDF
     } catch (error) {
@@ -61,7 +58,6 @@ const FileUpload = ({ name, value, onFileSelect, onFileUpload, disabled }) => {
             onChange={handleFileChange}
             disabled={disabled}
             multiple
-            style={{ display: 'none' }}
           />
           <p className="file-support">Only PDF files are allowed.</p>
         </div>
