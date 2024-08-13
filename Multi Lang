@@ -1,34 +1,86 @@
-const handleExport = async (format) => {
-    if (!message || Object.keys(message).length === 0) {
-        console.log("No message to export!");
-        return;
-    }
+import React, { useState } from 'react';
+import TreeView from './TreeView';
+import { json2csv } from 'json-2-csv'; // Ensure you have installed json-2-csv
+import { useTranslation } from 'react-i18next';
 
-    let fileContent;
-    let fileType;
-    let fileName;
+const Modal = ({ show, onClose, message }) => {
+    const { t } = useTranslation();
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-    if (format === 'json') {
-        fileContent = JSON.stringify(message); // Removed the indentation for compact JSON
-        fileType = 'application/json';
-        fileName = 'result.json';
-    } else if (format === 'csv') {
-        try {
-            fileContent = await json2csv(message);
-            fileType = 'text/csv';
-            fileName = 'result.csv';
-        } catch (err) {
-            console.error("Error converting JSON to CSV", err);
+    if (!show) return null;
+
+    const renderContent = () => {
+        if (!message || Object.keys(message).length === 0) {
+            return <p><b>Reconciliation in progress... Please Wait...</b></p>;
+        } else if (message === "No data available in excel file.") {
+            return <p><b>No data available in excel file.</b></p>;
+        } else {
+            return <TreeView data={message} />;
+        }
+    };
+
+    const handleExport = async (format) => {
+        if (!message || Object.keys(message).length === 0) {
+            console.log("No message to export!");
             return;
         }
-    }
 
-    const element = document.createElement("a");
-    const file = new Blob([fileContent], { type: fileType });
+        let fileContent;
+        let fileType;
+        let fileName;
 
-    element.href = URL.createObjectURL(file);
-    element.download = fileName;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element); // Clean up
+        if (format === 'json') {
+            fileContent = JSON.stringify(message, null, 2); // Pretty-printed JSON
+            fileType = 'text/plain'; // Use text/plain for .txt files
+            fileName = 'result.txt'; // Set file extension to .txt
+        } else if (format === 'csv') {
+            try {
+                fileContent = await json2csv(message);
+                fileType = 'text/csv';
+                fileName = 'result.csv';
+            } catch (err) {
+                console.error("Error converting JSON to CSV", err);
+                return;
+            }
+        }
+
+        const element = document.createElement("a");
+        const file = new Blob([fileContent], { type: fileType });
+
+        element.href = URL.createObjectURL(file);
+        element.download = fileName;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element); // Clean up
+    };
+
+    return (
+        <div className="modal-overlay">
+            <div className="modal-content">
+                <h2>{t('modal.result')}</h2>
+                <div className="modal-body">
+                    {renderContent()}
+                </div>
+                <div className="modal-buttons">
+                    <button onClick={onClose} className="close-button">{t('modal.close')}</button>
+                    <div className="export-dropdown">
+                        <button
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className="export-button"
+                        >
+                            {t('modal.export')}
+                        </button>
+                        {isDropdownOpen && (
+                            <div className="dropdown-menu">
+                                <button onClick={() => handleExport('json')}>Export to TXT</button>
+                                <button onClick={() => handleExport('csv')}>Export to CSV</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 };
+
+export default Modal;
