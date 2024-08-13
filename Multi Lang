@@ -1,3 +1,5 @@
+// dataTransformer.js
+
 const transformDataForCSV = (message) => {
     const transformedData = [];
 
@@ -31,3 +33,22 @@ const transformDataForCSV = (message) => {
     console.log("Transformed data for CSV:", transformedData); // Debugging line
     return transformedData;
 };
+
+export default transformDataForCSV;
+
+------
+
+// csvConfig.js
+
+const csvConfig = {
+    columns: [
+        { key: 'Account No.', header: 'Account No.' },
+        { key: 'Transaction no.', header: 'Transaction No.' },
+        { key: 'Type of Confirmation', header: 'Type of Confirmation' },
+        { key: 'SOR Column', header: 'SOR Column' },
+        { key: 'SOR Data', header: 'SOR Data' },
+        { key: 'Invoice data', header: 'Invoice Data' }
+    ]
+};
+
+export default csvConfig;
