@@ -1,76 +1,86 @@
-import React from 'react';
+import React, { useState } from 'react';
+import TreeView from './TreeView';
+import { parse } from 'json2csv'; // Make sure to install this package: npm install json2csv
+import { useTranslation } from 'react-i18next';
 
-const Modal = ({ show, onClose, message, children }) => {
-  if (!show) return null;
+const Modal = ({ show, onClose, message }) => {
+    const { t } = useTranslation();
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const { t } = useTranslation();
+    if (!show) return null;
 
-  // Function to export as JSON
-  const handleExportJson = () => {
-    if (!message) {
-      console.log('No message to export!');
-      return;
-    }
-
-    const element = document.createElement("a");
-    const file = new Blob([JSON.stringify(message, null, 2)], { type: 'application/json' });
-    element.href = URL.createObjectURL(file);
-    element.download = "result.json";
-    document.body.appendChild(element);
-    element.click();
-  };
-
-  // Function to export as CSV
-  const handleExportCsv = () => {
-    if (!message) {
-      console.log('No message to export!');
-      return;
-    }
-
-    // Convert JSON to CSV format
-    const jsonToCsv = (json) => {
-      const headers = Object.keys(json[0]);
-      const csvRows = [];
-
-      csvRows.push(headers.join(',')); // Add headers row
-
-      for (const row of json) {
-        const values = headers.map(header => {
-          const val = row[header];
-          return `"${val}"`; // Enclose in double quotes to handle commas
-        });
-        csvRows.push(values.join(','));
-      }
-
-      return csvRows.join('\n');
+    const renderContent = () => {
+        // Check if message is available and contains data
+        if (!message || Object.keys(message).length === 0) {
+            return <p><b>Reconciliation in progress... Please Wait...</b></p>;
+        } else if (message === "No data available in excel file.") {
+            return <p><b>No data available in excel file.</b></p>;
+        } else {
+            return <TreeView data={message} />;
+        }
     };
 
-    const csvContent = jsonToCsv(message); // Assuming message is an array of objects
+    const handleExport = (format) => {
+        if (!message || Object.keys(message).length === 0) {
+            console.log("No message to export!");
+            return;
+        }
 
-    // Trigger CSV download
-    const element = document.createElement("a");
-    const file = new Blob([csvContent], { type: 'text/csv' });
-    element.href = URL.createObjectURL(file);
-    element.download = "result.csv";
-    document.body.appendChild(element);
-    element.click();
-  };
+        let fileContent;
+        let fileType;
+        let fileName;
 
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <h2>{t('modal.result')}</h2>
-        <div className="modal-body">
-          {children}
+        if (format === 'json') {
+            fileContent = JSON.stringify(message, null, 2);
+            fileType = 'application/json';
+            fileName = 'result.json';
+        } else if (format === 'csv') {
+            try {
+                fileContent = parse(message);
+                fileType = 'text/csv';
+                fileName = 'result.csv';
+            } catch (err) {
+                console.error("Error converting JSON to CSV", err);
+                return;
+            }
+        }
+
+        const element = document.createElement("a");
+        const file = new Blob([fileContent], { type: fileType });
+
+        element.href = URL.createObjectURL(file);
+        element.download = fileName;
+        document.body.appendChild(element);
+        element.click();
+    };
+
+    return (
+        <div className="modal-overlay">
+            <div className="modal-content">
+                <h2>{t('modal.result')}</h2>
+                <div className="modal-body">
+                    {renderContent()} {/* Display either the progress message, "No data" message, or the TreeView */}
+                </div>
+                <div className="modal-buttons">
+                    <button onClick={onClose} className="close-button">{t('modal.close')}</button>
+                    <div className="export-dropdown">
+                        <button
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className="export-button"
+                        >
+                            {t('modal.export')}
+                        </button>
+                        {isDropdownOpen && (
+                            <div className="dropdown-menu">
+                                <button onClick={() => handleExport('json')}>Export to JSON</button>
+                                <button onClick={() => handleExport('csv')}>Export to CSV</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
         </div>
-        <div className="modal-buttons">
-          <button onClick={onClose} className="close-button">{t('modal.close')}</button>
-          <button onClick={handleExportJson} className="export-button">{t('modal.exportJSON')}</button>
-          <button onClick={handleExportCsv} className="export-button">{t('modal.exportCSV')}</button>
-        </div>
-      </div>
-    </div>
-  );
+    );
 };
 
 export default Modal;
