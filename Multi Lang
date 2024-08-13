@@ -1,86 +1,34 @@
-import React, { useState } from 'react';
-import TreeView from './TreeView';
-import { json2csv } from 'json-2-csv'; // Ensure you have installed json-2-csv
-import { useTranslation } from 'react-i18next';
+const handleExport = async (format) => {
+    if (!message || Object.keys(message).length === 0) {
+        console.log("No message to export!");
+        return;
+    }
 
-const Modal = ({ show, onClose, message }) => {
-    const { t } = useTranslation();
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    let fileContent;
+    let fileType;
+    let fileName;
 
-    if (!show) return null;
-
-    const renderContent = () => {
-        if (!message || Object.keys(message).length === 0) {
-            return <p><b>Reconciliation in progress... Please Wait...</b></p>;
-        } else if (message === "No data available in excel file.") {
-            return <p><b>No data available in excel file.</b></p>;
-        } else {
-            return <TreeView data={message} />;
-        }
-    };
-
-    const handleExport = async (format) => {
-        if (!message || Object.keys(message).length === 0) {
-            console.log("No message to export!");
+    if (format === 'json') {
+        fileContent = JSON.stringify(message); // Removed the indentation for compact JSON
+        fileType = 'application/json';
+        fileName = 'result.json';
+    } else if (format === 'csv') {
+        try {
+            fileContent = await json2csv(message);
+            fileType = 'text/csv';
+            fileName = 'result.csv';
+        } catch (err) {
+            console.error("Error converting JSON to CSV", err);
             return;
         }
+    }
 
-        let fileContent;
-        let fileType;
-        let fileName;
+    const element = document.createElement("a");
+    const file = new Blob([fileContent], { type: fileType });
 
-        if (format === 'json') {
-            fileContent = JSON.stringify(message, null, 2);
-            fileType = 'application/json';
-            fileName = 'result.json';
-        } else if (format === 'csv') {
-            try {
-                // Convert JSON to CSV using json-2-csv
-                fileContent = await json2csv(message);
-                fileType = 'text/csv';
-                fileName = 'result.csv';
-            } catch (err) {
-                console.error("Error converting JSON to CSV", err);
-                return;
-            }
-        }
-
-        const element = document.createElement("a");
-        const file = new Blob([fileContent], { type: fileType });
-
-        element.href = URL.createObjectURL(file);
-        element.download = fileName;
-        document.body.appendChild(element);
-        element.click();
-    };
-
-    return (
-        <div className="modal-overlay">
-            <div className="modal-content">
-                <h2>{t('modal.result')}</h2>
-                <div className="modal-body">
-                    {renderContent()}
-                </div>
-                <div className="modal-buttons">
-                    <button onClick={onClose} className="close-button">{t('modal.close')}</button>
-                    <div className="export-dropdown">
-                        <button
-                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="export-button"
-                        >
-                            {t('modal.export')}
-                        </button>
-                        {isDropdownOpen && (
-                            <div className="dropdown-menu">
-                                <button onClick={() => handleExport('json')}>Export to JSON</button>
-                                <button onClick={() => handleExport('csv')}>Export to CSV</button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+    element.href = URL.createObjectURL(file);
+    element.download = fileName;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element); // Clean up
 };
-
-export default Modal;
