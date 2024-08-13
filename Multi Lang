@@ -1,116 +1,33 @@
-import React, { useState } from 'react';
-import TreeView from './TreeView';
-import { json2csv } from 'json-2-csv'; // Ensure you have installed json-2-csv
-import { useTranslation } from 'react-i18next';
-import { csvConfig } from './csvConfig'; // Import the CSV configuration
+const transformDataForCSV = (message) => {
+    const transformedData = [];
 
-const Modal = ({ show, onClose, message }) => {
-    const { t } = useTranslation();
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-
-    if (!show) return null;
-
-    const renderContent = () => {
-        if (!message || Object.keys(message).length === 0) {
-            return <p><b>Reconciliation in progress... Please Wait...</b></p>;
-        } else if (message === "No data available in excel file.") {
-            return <p><b>No data available in excel file.</b></p>;
-        } else {
-            return <TreeView data={message} />;
-        }
-    };
-
-    const handleExport = async (format) => {
-        console.log("Export button clicked:", format); // Debugging line
-
-        if (!message || Object.keys(message).length === 0) {
-            console.log("No message to export!");
-            return;
-        }
-
-        let fileContent;
-        let fileType;
-        let fileName;
-
-        if (format === 'json') {
-            fileContent = JSON.stringify(message, null, 2);
-            fileType = 'application/json';
-            fileName = 'result.json';
-        } else if (format === 'csv') {
-            try {
-                console.log("Converting JSON to CSV..."); // Debugging line
-                const dataToConvert = transformDataForCSV(message);
-                console.log("Data to convert:", dataToConvert); // Debugging line
-
-                fileContent = await json2csv(dataToConvert, { keys: csvConfig });
-                console.log("CSV content generated:", fileContent); // Debugging line
-
-                fileType = 'text/csv';
-                fileName = 'result.csv';
-            } catch (err) {
-                console.error("Error converting JSON to CSV", err);
-                return;
-            }
-        }
-
-        const element = document.createElement("a");
-        const file = new Blob([fileContent], { type: fileType });
-
-        element.href = URL.createObjectURL(file);
-        element.download = fileName;
-        document.body.appendChild(element);
-        element.click();
-    };
-
-    const transformDataForCSV = (message) => {
-        const transformedData = [];
-
+    if (message && Array.isArray(message.Differences)) {
         message.Differences.forEach((difference) => {
             const account = difference.Account;
-            difference.Result.forEach((result) => {
-                const row = {
-                    'Account No.': account,
-                    'Transaction no.': result['Transaction Number'],
-                    'Type of Confirmation': result.Confirmation,
-                    'SOR Column': Object.keys(result.Differences)[0],
-                    'SOR Data': result.Differences[Object.keys(result.Differences)[0]].Excel,
-                    'Invoice data': result.Differences[Object.keys(result.Differences)[0]].PDF
-                };
-                transformedData.push(row);
-            });
+
+            if (difference.Result && Array.isArray(difference.Result)) {
+                difference.Result.forEach((result) => {
+                    const sorColumn = Object.keys(result.Differences || {})[0];
+                    const sorData = sorColumn ? result.Differences[sorColumn]?.Excel : '';
+                    const invoiceData = sorColumn ? result.Differences[sorColumn]?.PDF : '';
+
+                    const row = {
+                        'Account No.': account || '',
+                        'Transaction no.': result['Transaction Number'] || '',
+                        'Type of Confirmation': result.Confirmation || '',
+                        'SOR Column': sorColumn || '',
+                        'SOR Data': sorData || '',
+                        'Invoice data': invoiceData || ''
+                    };
+
+                    transformedData.push(row);
+                });
+            }
         });
+    } else {
+        console.error("Invalid message format or Differences is not an array");
+    }
 
-        console.log("Transformed data for CSV:", transformedData); // Debugging line
-        return transformedData;
-    };
-
-    return (
-        <div className="modal-overlay">
-            <div className="modal-content">
-                <h2>{t('modal.result')}</h2>
-                <div className="modal-body">
-                    {renderContent()}
-                </div>
-                <div className="modal-buttons">
-                    <button onClick={onClose} className="close-button">{t('modal.close')}</button>
-                    <div className="export-dropdown">
-                        <button
-                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="export-button"
-                        >
-                            {t('modal.export')}
-                        </button>
-                        {isDropdownOpen && (
-                            <div className="dropdown-menu">
-                                <button onClick={() => handleExport('json')}>Export to JSON</button>
-                                <button onClick={() => handleExport('csv')}>Export to CSV</button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+    console.log("Transformed data for CSV:", transformedData); // Debugging line
+    return transformedData;
 };
-
-export default Modal;
