@@ -1,33 +1,76 @@
-const handleFileChange = (event) => {
-    const file = event.target.files[0];
+import React from 'react';
 
-    // Determine supported types based on the fileType prop
-    const supportedTypes = fileType === 'pdf'
-        ? ['application/pdf']
-        : [
-            'text/csv',
-            'application/vnd.ms-excel', // .xls
-            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
-            'application/vnd.ms-excel.sheet.macroEnabled.12', // .xlsm
-            'application/vnd.ms-excel.sheet.binary.macroEnabled.12' // .xlsb
-        ];
+const Modal = ({ show, onClose, message, children }) => {
+  if (!show) return null;
 
-    const MAX_SIZE_MB = fileType === 'pdf' ? 200 : 1024; // Set max size: 200MB for PDF, 1GB for others
+  const { t } = useTranslation();
 
-    if (file) {
-        const fileSizeMB = file.size / (1024 * 1024); // Convert file size to MB
-
-        if (fileSizeMB > MAX_SIZE_MB) {
-            alert(`File size exceeded. Max ${MAX_SIZE_MB}MB allowed.`);
-            event.target.value = '';  // Reset the file input
-            return;
-        }
-
-        if (supportedTypes.includes(file.type)) {
-            setSelectedFile(file);
-            onFileSelect(value, file);
-        } else {
-            alert(`Only ${fileType.toUpperCase()} files are allowed.`);
-        }
+  // Function to export as JSON
+  const handleExportJson = () => {
+    if (!message) {
+      console.log('No message to export!');
+      return;
     }
+
+    const element = document.createElement("a");
+    const file = new Blob([JSON.stringify(message, null, 2)], { type: 'application/json' });
+    element.href = URL.createObjectURL(file);
+    element.download = "result.json";
+    document.body.appendChild(element);
+    element.click();
+  };
+
+  // Function to export as CSV
+  const handleExportCsv = () => {
+    if (!message) {
+      console.log('No message to export!');
+      return;
+    }
+
+    // Convert JSON to CSV format
+    const jsonToCsv = (json) => {
+      const headers = Object.keys(json[0]);
+      const csvRows = [];
+
+      csvRows.push(headers.join(',')); // Add headers row
+
+      for (const row of json) {
+        const values = headers.map(header => {
+          const val = row[header];
+          return `"${val}"`; // Enclose in double quotes to handle commas
+        });
+        csvRows.push(values.join(','));
+      }
+
+      return csvRows.join('\n');
+    };
+
+    const csvContent = jsonToCsv(message); // Assuming message is an array of objects
+
+    // Trigger CSV download
+    const element = document.createElement("a");
+    const file = new Blob([csvContent], { type: 'text/csv' });
+    element.href = URL.createObjectURL(file);
+    element.download = "result.csv";
+    document.body.appendChild(element);
+    element.click();
+  };
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <h2>{t('modal.result')}</h2>
+        <div className="modal-body">
+          {children}
+        </div>
+        <div className="modal-buttons">
+          <button onClick={onClose} className="close-button">{t('modal.close')}</button>
+          <button onClick={handleExportJson} className="export-button">{t('modal.exportJSON')}</button>
+          <button onClick={handleExportCsv} className="export-button">{t('modal.exportCSV')}</button>
+        </div>
+      </div>
+    </div>
+  );
 };
+
+export default Modal;
