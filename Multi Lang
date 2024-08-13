@@ -1,86 +1,63 @@
-import React, { useState } from 'react';
-import TreeView from './TreeView';
-import { json2csv } from 'json-2-csv'; // Ensure you have installed json-2-csv
-import { useTranslation } from 'react-i18next';
+// csvConfig.js
+export const csvConfig = [
+  'Account No.',
+  'Transaction no.',
+  'Type of Confirmation',
+  'SOR Column',
+  'SOR Data',
+  'Invoice data'
+];
 
-const Modal = ({ show, onClose, message }) => {
-    const { t } = useTranslation();
-    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+------------
 
-    if (!show) return null;
+import { parse } from 'json-2-csv';
+import { csvConfig } from './csvConfig'; // Config for column mapping
 
-    const renderContent = () => {
-        if (!message || Object.keys(message).length === 0) {
-            return <p><b>Reconciliation in progress... Please Wait...</b></p>;
-        } else if (message === "No data available in excel file.") {
-            return <p><b>No data available in excel file.</b></p>;
-        } else {
-            return <TreeView data={message} />;
-        }
-    };
+const handleExportToCSV = () => {
+  if (!message || !message.Differences || message.Differences.length === 0) {
+    console.log("No message to export!");
+    return;
+  }
 
-    const handleExport = async (format) => {
-        if (!message || Object.keys(message).length === 0) {
-            console.log("No message to export!");
-            return;
-        }
+  const dataToConvert = [];
 
-        let fileContent;
-        let fileType;
-        let fileName;
+  // Flatten the JSON structure
+  message.Differences.forEach(accountData => {
+    const accountNo = accountData.Account;
 
-        if (format === 'json') {
-            fileContent = JSON.stringify(message, null, 2); // Pretty-printed JSON
-            fileType = 'text/plain'; // Use text/plain for .txt files
-            fileName = 'result.txt'; // Set file extension to .txt
-        } else if (format === 'csv') {
-            try {
-                fileContent = await json2csv(message);
-                fileType = 'text/csv';
-                fileName = 'result.csv';
-            } catch (err) {
-                console.error("Error converting JSON to CSV", err);
-                return;
-            }
-        }
+    accountData.Result.forEach(result => {
+      const transactionNo = result['Transaction Number'];
+      const confirmationType = result.Confirmation;
 
-        const element = document.createElement("a");
-        const file = new Blob([fileContent], { type: fileType });
+      Object.keys(result.Differences).forEach(sorColumn => {
+        const sorData = result.Differences[sorColumn].Excel;
+        const invoiceData = result.Differences[sorColumn].PDF;
 
-        element.href = URL.createObjectURL(file);
-        element.download = fileName;
-        document.body.appendChild(element);
-        element.click();
-        document.body.removeChild(element); // Clean up
-    };
+        dataToConvert.push({
+          'Account No.': accountNo,
+          'Transaction no.': transactionNo,
+          'Type of Confirmation': confirmationType,
+          'SOR Column': sorColumn,
+          'SOR Data': sorData,
+          'Invoice data': invoiceData
+        });
+      });
+    });
+  });
 
-    return (
-        <div className="modal-overlay">
-            <div className="modal-content">
-                <h2>{t('modal.result')}</h2>
-                <div className="modal-body">
-                    {renderContent()}
-                </div>
-                <div className="modal-buttons">
-                    <button onClick={onClose} className="close-button">{t('modal.close')}</button>
-                    <div className="export-dropdown">
-                        <button
-                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                            className="export-button"
-                        >
-                            {t('modal.export')}
-                        </button>
-                        {isDropdownOpen && (
-                            <div className="dropdown-menu">
-                                <button onClick={() => handleExport('json')}>Export to TXT</button>
-                                <button onClick={() => handleExport('csv')}>Export to CSV</button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
+  // Convert JSON to CSV
+  parse(dataToConvert, { keys: csvConfig }, (err, csv) => {
+    if (err) {
+      console.error("Error converting to CSV:", err);
+      return;
+    }
+
+    // Create a download link
+    const element = document.createElement("a");
+    const file = new Blob([csv], { type: 'text/csv' });
+    element.href = URL.createObjectURL(file);
+    element.download = "result.csv";
+    document.body.appendChild(element);
+    element.click();
+  });
 };
-
-export default Modal;
