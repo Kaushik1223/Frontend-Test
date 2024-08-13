@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import TreeView from './TreeView';
-import { parse } from 'json2csv'; // Make sure to install this package: npm install json2csv
+import { json2csv } from 'json-2-csv'; // Ensure you have installed json-2-csv
 import { useTranslation } from 'react-i18next';
 
 const Modal = ({ show, onClose, message }) => {
@@ -10,7 +10,6 @@ const Modal = ({ show, onClose, message }) => {
     if (!show) return null;
 
     const renderContent = () => {
-        // Check if message is available and contains data
         if (!message || Object.keys(message).length === 0) {
             return <p><b>Reconciliation in progress... Please Wait...</b></p>;
         } else if (message === "No data available in excel file.") {
@@ -20,7 +19,7 @@ const Modal = ({ show, onClose, message }) => {
         }
     };
 
-    const handleExport = (format) => {
+    const handleExport = async (format) => {
         if (!message || Object.keys(message).length === 0) {
             console.log("No message to export!");
             return;
@@ -36,7 +35,8 @@ const Modal = ({ show, onClose, message }) => {
             fileName = 'result.json';
         } else if (format === 'csv') {
             try {
-                fileContent = parse(message);
+                // Convert JSON to CSV using json-2-csv
+                fileContent = await json2csv(message);
                 fileType = 'text/csv';
                 fileName = 'result.csv';
             } catch (err) {
@@ -59,7 +59,7 @@ const Modal = ({ show, onClose, message }) => {
             <div className="modal-content">
                 <h2>{t('modal.result')}</h2>
                 <div className="modal-body">
-                    {renderContent()} {/* Display either the progress message, "No data" message, or the TreeView */}
+                    {renderContent()}
                 </div>
                 <div className="modal-buttons">
                     <button onClick={onClose} className="close-button">{t('modal.close')}</button>
