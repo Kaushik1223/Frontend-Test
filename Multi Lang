@@ -1,7 +1,9 @@
 import React from 'react';
 import { PDFDocument } from 'pdf-lib';
 
-const MergeButton = ({ onFileSelect }) => {
+const MergeButton = ({ onFileUpload }) => {
+
+  const MAX_SIZE_MB = 200;
 
   const handleMergeClick = () => {
     document.getElementById('merge-file-input').click();
@@ -26,10 +28,19 @@ const MergeButton = ({ onFileSelect }) => {
 
     const mergedPdfBytes = await pdfDoc.save();
     const mergedBlob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+
+    const mergedSizeMB = mergedBlob.size / (1024 * 1024);  // Size in MB
+
+    if (mergedSizeMB > MAX_SIZE_MB) {
+      alert(`Size exceeded. Max ${MAX_SIZE_MB}MB allowed.`);
+      event.target.value = '';  // Reset the file input
+      return;
+    }
+
     const mergedFile = new File([mergedBlob], "merged.pdf", { type: 'application/pdf' });
 
     // Automatically upload the merged PDF to the "Upload Invoice" section
-    onFileSelect('invoice', mergedFile);
+    onFileUpload('invoice', mergedFile);
 
     // Reset the input to allow re-selecting files if needed
     event.target.value = '';
