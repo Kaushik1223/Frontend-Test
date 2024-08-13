@@ -1,64 +1,33 @@
-import React from 'react';
-import { PDFDocument } from 'pdf-lib';
+const handleFileChange = (event) => {
+    const file = event.target.files[0];
 
-const MergeButton = ({ onFileUpload }) => {
+    // Determine supported types based on the fileType prop
+    const supportedTypes = fileType === 'pdf'
+        ? ['application/pdf']
+        : [
+            'text/csv',
+            'application/vnd.ms-excel', // .xls
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // .xlsx
+            'application/vnd.ms-excel.sheet.macroEnabled.12', // .xlsm
+            'application/vnd.ms-excel.sheet.binary.macroEnabled.12' // .xlsb
+        ];
 
-  const MAX_SIZE_MB = 200;
+    const MAX_SIZE_MB = fileType === 'pdf' ? 200 : 1024; // Set max size: 200MB for PDF, 1GB for others
 
-  const handleMergeClick = () => {
-    document.getElementById('merge-file-input').click();
-  };
+    if (file) {
+        const fileSizeMB = file.size / (1024 * 1024); // Convert file size to MB
 
-  const handleMergeFileSelect = async (event) => {
-    const files = event.target.files;
+        if (fileSizeMB > MAX_SIZE_MB) {
+            alert(`File size exceeded. Max ${MAX_SIZE_MB}MB allowed.`);
+            event.target.value = '';  // Reset the file input
+            return;
+        }
 
-    if (files.length < 2) {
-      alert("Please select at least two PDF files to merge.");
-      return;
+        if (supportedTypes.includes(file.type)) {
+            setSelectedFile(file);
+            onFileSelect(value, file);
+        } else {
+            alert(`Only ${fileType.toUpperCase()} files are allowed.`);
+        }
     }
-
-    const pdfDoc = await PDFDocument.create();
-
-    for (const file of files) {
-      const existingPdfBytes = await file.arrayBuffer();
-      const existingPdf = await PDFDocument.load(existingPdfBytes);
-      const copiedPages = await pdfDoc.copyPages(existingPdf, existingPdf.getPageIndices());
-      copiedPages.forEach((page) => pdfDoc.addPage(page));
-    }
-
-    const mergedPdfBytes = await pdfDoc.save();
-    const mergedBlob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
-
-    const mergedSizeMB = mergedBlob.size / (1024 * 1024);  // Size in MB
-
-    if (mergedSizeMB > MAX_SIZE_MB) {
-      alert(`Size exceeded. Max ${MAX_SIZE_MB}MB allowed.`);
-      event.target.value = '';  // Reset the file input
-      return;
-    }
-
-    const mergedFile = new File([mergedBlob], "merged.pdf", { type: 'application/pdf' });
-
-    // Automatically upload the merged PDF to the "Upload Invoice" section
-    onFileUpload('invoice', mergedFile);
-
-    // Reset the input to allow re-selecting files if needed
-    event.target.value = '';
-  };
-
-  return (
-    <div className="merge-section">
-      <button onClick={handleMergeClick} className="merge-button">Merge PDFs</button>
-      <input
-        type="file"
-        id="merge-file-input"
-        style={{ display: 'none' }}
-        accept="application/pdf"
-        multiple
-        onChange={handleMergeFileSelect}
-      />
-    </div>
-  );
 };
-
-export default MergeButton;
