@@ -1,7 +1,12 @@
 // dataTransformer.js
 
+import { csvConfig } from './csvConfig'; // Import the CSV configuration
+
 const transformDataForCSV = (message) => {
     const transformedData = [];
+
+    // Ensure that `csvConfig` is an array of column headers
+    const headers = csvConfig;
 
     if (message && Array.isArray(message.Differences)) {
         message.Differences.forEach((difference) => {
@@ -31,24 +36,15 @@ const transformDataForCSV = (message) => {
     }
 
     console.log("Transformed data for CSV:", transformedData); // Debugging line
-    return transformedData;
+
+    // Ensure that transformedData contains all the headers defined in csvConfig
+    return transformedData.map(row => {
+        const newRow = {};
+        headers.forEach(header => {
+            newRow[header] = row[header] || ''; // Ensure all columns are present in each row
+        });
+        return newRow;
+    });
 };
 
 export default transformDataForCSV;
-
-------
-
-// csvConfig.js
-
-const csvConfig = {
-    columns: [
-        { key: 'Account No.', header: 'Account No.' },
-        { key: 'Transaction no.', header: 'Transaction No.' },
-        { key: 'Type of Confirmation', header: 'Type of Confirmation' },
-        { key: 'SOR Column', header: 'SOR Column' },
-        { key: 'SOR Data', header: 'SOR Data' },
-        { key: 'Invoice data', header: 'Invoice Data' }
-    ]
-};
-
-export default csvConfig;
