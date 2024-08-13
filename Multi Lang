@@ -1,63 +1,106 @@
 // csvConfig.js
-export const csvConfig = [
-  'Account No.',
-  'Transaction no.',
-  'Type of Confirmation',
-  'SOR Column',
-  'SOR Data',
-  'Invoice data'
-];
+const csvConfig = {
+  keys: [
+    'Account',
+    'Result.Transaction Number',
+    'Result.Confirmation',
+    'Result.Differences.Excel',
+    'Result.Differences.PDF'
+  ],
+  emptyFieldValue: '', // Default value for empty fields
+};
+
+export default csvConfig;
 
 ------------
 
-import { parse } from 'json-2-csv';
-import { csvConfig } from './csvConfig'; // Config for column mapping
+import React, { useState } from 'react';
+import TreeView from './TreeView';
+import { json2csv } from 'json-2-csv'; // Ensure you have installed json-2-csv
+import { useTranslation } from 'react-i18next';
+import csvConfig from './csvConfig'; // Import the CSV config
 
-const handleExportToCSV = () => {
-  if (!message || !message.Differences || message.Differences.length === 0) {
-    console.log("No message to export!");
-    return;
-  }
+const Modal = ({ show, onClose, message }) => {
+    const { t } = useTranslation();
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 
-  const dataToConvert = [];
+    if (!show) return null;
 
-  // Flatten the JSON structure
-  message.Differences.forEach(accountData => {
-    const accountNo = accountData.Account;
+    const renderContent = () => {
+        if (!message || Object.keys(message).length === 0) {
+            return <p><b>Reconciliation in progress... Please Wait...</b></p>;
+        } else if (message === "No data available in excel file.") {
+            return <p><b>No data available in excel file.</b></p>;
+        } else {
+            return <TreeView data={message} />;
+        }
+    };
 
-    accountData.Result.forEach(result => {
-      const transactionNo = result['Transaction Number'];
-      const confirmationType = result.Confirmation;
+    const handleExport = async (format) => {
+        if (!message || Object.keys(message).length === 0) {
+            console.log("No message to export!");
+            return;
+        }
 
-      Object.keys(result.Differences).forEach(sorColumn => {
-        const sorData = result.Differences[sorColumn].Excel;
-        const invoiceData = result.Differences[sorColumn].PDF;
+        let fileContent;
+        let fileType;
+        let fileName;
 
-        dataToConvert.push({
-          'Account No.': accountNo,
-          'Transaction no.': transactionNo,
-          'Type of Confirmation': confirmationType,
-          'SOR Column': sorColumn,
-          'SOR Data': sorData,
-          'Invoice data': invoiceData
-        });
-      });
-    });
-  });
+        if (format === 'json') {
+            fileContent = JSON.stringify(message, null, 2);
+            fileType = 'application/json';
+            fileName = 'result.json';
+        } else if (format === 'csv') {
+            try {
+                // Convert JSON to CSV using json-2-csv with csvConfig
+                fileContent = await json2csv(message, csvConfig);
+                fileType = 'text/csv';
+                fileName = 'result.csv';
+            } catch (err) {
+                console.error("Error converting JSON to CSV", err);
+                return;
+            }
+        }
 
-  // Convert JSON to CSV
-  parse(dataToConvert, { keys: csvConfig }, (err, csv) => {
-    if (err) {
-      console.error("Error converting to CSV:", err);
-      return;
-    }
+        const element = document.createElement("a");
+        const file = new Blob([fileContent], { type: fileType });
 
-    // Create a download link
-    const element = document.createElement("a");
-    const file = new Blob([csv], { type: 'text/csv' });
-    element.href = URL.createObjectURL(file);
-    element.download = "result.csv";
-    document.body.appendChild(element);
-    element.click();
-  });
+        element.href = URL.createObjectURL(file);
+        element.download = fileName;
+        document.body.appendChild(element);
+        element.click();
+
+        // Cleanup
+        document.body.removeChild(element);
+    };
+
+    return (
+        <div className="modal-overlay">
+            <div className="modal-content">
+                <h2>{t('modal.result')}</h2>
+                <div className="modal-body">
+                    {renderContent()}
+                </div>
+                <div className="modal-buttons">
+                    <button onClick={onClose} className="close-button">{t('modal.close')}</button>
+                    <div className="export-dropdown">
+                        <button
+                            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                            className="export-button"
+                        >
+                            {t('modal.export')}
+                        </button>
+                        {isDropdownOpen && (
+                            <div className="dropdown-menu">
+                                <button onClick={() to handleExport('json')}>Export to JSON</button>
+                                <button onClick={() to handleExport('csv')}>Export to CSV</button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 };
+
+export default Modal;
