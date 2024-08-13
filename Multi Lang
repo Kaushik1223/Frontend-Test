@@ -1,16 +1,14 @@
 // csvConfig.js
-const csvConfig = {
-  keys: [
-    'Account',
-    'Result.Transaction Number',
-    'Result.Confirmation',
-    'Result.Differences.Excel',
-    'Result.Differences.PDF'
-  ],
-  emptyFieldValue: '', // Default value for empty fields
-};
+// csvConfig.js
 
-export default csvConfig;
+export const csvConfig = [
+  'Account No.',
+  'Transaction no.',
+  'Type of Confirmation',
+  'SOR Column',
+  'SOR Data',
+  'Invoice data'
+];
 
 ------------
 
@@ -18,7 +16,7 @@ import React, { useState } from 'react';
 import TreeView from './TreeView';
 import { json2csv } from 'json-2-csv'; // Ensure you have installed json-2-csv
 import { useTranslation } from 'react-i18next';
-import csvConfig from './csvConfig'; // Import the CSV config
+import { csvConfig } from './csvConfig'; // Import the CSV configuration
 
 const Modal = ({ show, onClose, message }) => {
     const { t } = useTranslation();
@@ -52,8 +50,11 @@ const Modal = ({ show, onClose, message }) => {
             fileName = 'result.json';
         } else if (format === 'csv') {
             try {
-                // Convert JSON to CSV using json-2-csv with csvConfig
-                fileContent = await json2csv(message, csvConfig);
+                // Transform message to fit CSV structure
+                const dataToConvert = transformDataForCSV(message);
+                
+                // Convert JSON to CSV using json-2-csv with specific headers
+                fileContent = await json2csv(dataToConvert, { keys: csvConfig });
                 fileType = 'text/csv';
                 fileName = 'result.csv';
             } catch (err) {
@@ -69,9 +70,28 @@ const Modal = ({ show, onClose, message }) => {
         element.download = fileName;
         document.body.appendChild(element);
         element.click();
+    };
 
-        // Cleanup
-        document.body.removeChild(element);
+    // Function to transform the data to match the CSV structure
+    const transformDataForCSV = (message) => {
+        const transformedData = [];
+
+        message.Differences.forEach((difference) => {
+            const account = difference.Account;
+            difference.Result.forEach((result) => {
+                const row = {
+                    'Account No.': account,
+                    'Transaction no.': result['Transaction Number'],
+                    'Type of Confirmation': result.Confirmation,
+                    'SOR Column': Object.keys(result.Differences)[0],
+                    'SOR Data': result.Differences[Object.keys(result.Differences)[0]].Excel,
+                    'Invoice data': result.Differences[Object.keys(result.Differences)[0]].PDF
+                };
+                transformedData.push(row);
+            });
+        });
+
+        return transformedData;
     };
 
     return (
@@ -92,8 +112,8 @@ const Modal = ({ show, onClose, message }) => {
                         </button>
                         {isDropdownOpen && (
                             <div className="dropdown-menu">
-                                <button onClick={() to handleExport('json')}>Export to JSON</button>
-                                <button onClick={() to handleExport('csv')}>Export to CSV</button>
+                                <button onClick={() => handleExport('json')}>Export to JSON</button>
+                                <button onClick={() => handleExport('csv')}>Export to CSV</button>
                             </div>
                         )}
                     </div>
