@@ -1,50 +1,56 @@
-// dataTransformer.js
+import React, { useState } from 'react';
+import { PDFDocument } from 'pdf-lib';
+import { MdOutlineCancel } from "react-icons/md";
 
-import { csvConfig } from './csvConfig'; // Import the CSV configuration
+const MergeButton = ({ onFileUpload }) => {
+  const [selectedFiles, setSelectedFiles] = useState([]);
 
-const transformDataForCSV = (message) => {
-    const transformedData = [];
+  const handleFileChange = async (event) => {
+    const files = Array.from(event.target.files);
 
-    // Ensure that `csvConfig` is an array of column headers
-    const headers = csvConfig;
+    const pdfDocs = await Promise.all(files.map(async (file) => {
+      const existingPdfBytes = await file.arrayBuffer();
+      return await PDFDocument.load(existingPdfBytes);
+    }));
 
-    if (message && Array.isArray(message.Differences)) {
-        message.Differences.forEach((difference) => {
-            const account = difference.Account;
+    setSelectedFiles(pdfDocs);
+    onFileUpload(files);  // Pass selected files to the FileUpload component
+  };
 
-            if (difference.Result && Array.isArray(difference.Result)) {
-                difference.Result.forEach((result) => {
-                    const sorColumn = Object.keys(result.Differences || {})[0];
-                    const sorData = sorColumn ? result.Differences[sorColumn]?.Excel : '';
-                    const invoiceData = sorColumn ? result.Differences[sorColumn]?.PDF : '';
+  const removeFile = (index) => {
+    const newSelectedFiles = selectedFiles.filter((_, i) => i !== index);
+    setSelectedFiles(newSelectedFiles);
+  };
 
-                    const row = {
-                        'Account No.': account || '',
-                        'Transaction no.': result['Transaction Number'] || '',
-                        'Type of Confirmation': result.Confirmation || '',
-                        'SOR Column': sorColumn || '',
-                        'SOR Data': sorData || '',
-                        'Invoice data': invoiceData || ''
-                    };
+  return (
+    <div className="merge-button-section">
+      <button onClick={() => document.getElementById('merge-file-input').click()}>
+        Select PDFs
+      </button>
+      <input
+        type="file"
+        id="merge-file-input"
+        style={{ display: 'none' }}
+        accept="application/pdf"
+        multiple
+        onChange={handleFileChange}
+      />
 
-                    transformedData.push(row);
-                });
-            }
-        });
-    } else {
-        console.error("Invalid message format or Differences is not an array");
-    }
-
-    console.log("Transformed data for CSV:", transformedData); // Debugging line
-
-    // Ensure that transformedData contains all the headers defined in csvConfig
-    return transformedData.map(row => {
-        const newRow = {};
-        headers.forEach(header => {
-            newRow[header] = row[header] || ''; // Ensure all columns are present in each row
-        });
-        return newRow;
-    });
+      {selectedFiles.length > 0 && (
+        <div className="selected-files-list">
+          <h4>Selected Files:</h4>
+          <ul>
+            {selectedFiles.map((pdfDoc, index) => (
+              <li key={index}>
+                {`PDF ${index + 1}`}
+                <button onClick={() => removeFile(index)}><MdOutlineCancel /></button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
 };
 
-export default transformDataForCSV;
+export default MergeButton;
