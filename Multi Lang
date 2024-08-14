@@ -1,54 +1,39 @@
-import React, { useState } from 'react';
-import { PDFDocument } from 'pdf-lib';
-import { MdOutlineCancel } from "react-icons/md";
+import React from 'react';
 
-const MergeButton = ({ onFileUpload }) => {
-  const [selectedFiles, setSelectedFiles] = useState([]);
+const MergeButton = ({ onFilesSelect }) => {
+  // Function to handle the selection of multiple PDF files
+  const handleFileSelect = (event) => {
+    const files = Array.from(event.target.files); // Convert FileList to an array
+    const supportedTypes = ['application/pdf']; // Only allow PDF files
 
-  const handleFileChange = async (event) => {
-    const files = Array.from(event.target.files);
+    // Filter out non-PDF files
+    const validFiles = files.filter(file => supportedTypes.includes(file.type));
 
-    const pdfDocs = await Promise.all(files.map(async (file) => {
-      const existingPdfBytes = await file.arrayBuffer();
-      return await PDFDocument.load(existingPdfBytes);
-    }));
-
-    setSelectedFiles(pdfDocs);
-    onFileUpload(files);  // Pass selected files to the FileUpload component
+    if (validFiles.length > 0) {
+      onFilesSelect(validFiles); // Pass the selected files to the parent component
+    } else {
+      alert('Only PDF files are allowed.'); // Alert if no valid files are selected
+    }
   };
 
-  const removeFile = (index) => {
-    const newSelectedFiles = selectedFiles.filter((_, i) => i !== index);
-    setSelectedFiles(newSelectedFiles);
+  const handleClick = () => {
+    // Programmatically click the hidden file input
+    document.getElementById('merge-file-input').click();
   };
 
   return (
-    <div className="merge-button-section">
-      <button onClick={() => document.getElementById('merge-file-input').click()}>
-        Select PDFs
+    <div className="merge-button-container">
+      <button onClick={handleClick} className="merge-button">
+        Select Multiple PDF Files
       </button>
       <input
         type="file"
         id="merge-file-input"
         style={{ display: 'none' }}
         accept="application/pdf"
-        multiple
-        onChange={handleFileChange}
+        multiple // Allow multiple file selection
+        onChange={handleFileSelect} // Handle the selected files
       />
-
-      {selectedFiles.length > 0 && (
-        <div className="selected-files-list">
-          <h4>Selected Files:</h4>
-          <ul>
-            {selectedFiles.map((pdfDoc, index) => (
-              <li key={index}>
-                {`PDF ${index + 1}`}
-                <button onClick={() => removeFile(index)}><MdOutlineCancel /></button>
-              </li>
-            ))}
-          </ul>
-        </div>
-      )}
     </div>
   );
 };
