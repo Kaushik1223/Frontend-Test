@@ -1,41 +1,5 @@
-import React from 'react';
+Here’s a more formal version of the problem statement:
 
-const MergeButton = ({ onFilesSelect }) => {
-  // Function to handle the selection of multiple PDF files
-  const handleFileSelect = (event) => {
-    const files = Array.from(event.target.files); // Convert FileList to an array
-    const supportedTypes = ['application/pdf']; // Only allow PDF files
-
-    // Filter out non-PDF files
-    const validFiles = files.filter(file => supportedTypes.includes(file.type));
-
-    if (validFiles.length > 0) {
-      onFilesSelect(validFiles); // Pass the selected files to the parent component
-    } else {
-      alert('Only PDF files are allowed.'); // Alert if no valid files are selected
-    }
-  };
-
-  const handleClick = () => {
-    // Programmatically click the hidden file input
-    document.getElementById('merge-file-input').click();
-  };
-
-  return (
-    <div className="merge-button-container">
-      <button onClick={handleClick} className="merge-button">
-        Select Multiple PDF Files
-      </button>
-      <input
-        type="file"
-        id="merge-file-input"
-        style={{ display: 'none' }}
-        accept="application/pdf"
-        multiple // Allow multiple file selection
-        onChange={handleFileSelect} // Handle the selected files
-      />
-    </div>
-  );
-};
-
-export default MergeButton;
+1. **Design and develop a comprehensive trade reconciliation service** that validates the data in confirmation invoices against the uploaded Broadridge report.
+2. **Automate document reading and trade confirmation processes** by creating robust functional utilities.
+3. **Integrate the application** and assess its performance across varying input sizes, with a focus on optimizing memory usage.
