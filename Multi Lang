@@ -1,11 +1,9 @@
-Here are some scope points based on your example:
+1. The business is responsible for validating data between trade confirmations and trade data from Broadridge, processing 50 PDFs (WBRS Report) on a daily basis.
 
-1. **Deliver a comprehensive end-to-end application** for trade reconciliation, enabling seamless validation and comparison of financial documents.
-   
-2. **Develop reusable scripts for utilities**, such as document reading and trade confirmation services, to facilitate future automation and scalability.
+2. The manual validation of 50 transactions currently requires approximately 2 hours each day.
 
-3. **Incorporate diverse functionalities**, including the generation of CSV and JSON outputs, allowing for flexible data handling and reporting.
+1. Deploy the application and configure a cron job to automate service execution.
 
-4. **Provide a highly functional user interface** with support for localization and globalization, ensuring the application is accessible to users in different regions.
+2. Further enhance operational efficiency.
 
-5. **Implement a configuration-based architecture**, allowing easy customization and adaptability of the application to different business requirements and input formats.
+3. Enable reconciliation of multiple PDFs directly from the user interface.
