@@ -1,271 +1,72 @@
-import React from 'react';
-import './Navbar.css';
+/* App Container */
+.app-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
 
-const Navbar = () => {
-  return (
-    <nav className="navbar">
-      <div className="navbar-logo">ConfigDriftValidator</div>
-    </nav>
-  );
-};
 
-export default Navbar;
----------------------------------
-.navbar {
-  background-color: #d52228 !important; /* Force red background */
-  padding: 15px 20px !important;
-  border-bottom: 5px solid #f7ca3e !important;
-  position: fixed !important;
-  top: 0;
-  left: 0;
-  width: 100% !important;
-  z-index: 1000 !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
+  
+  /* Main Content */
+  .content-wrapper {
+    display: flex;
+    margin-top: 65px; /* Navbar height */
+    height: calc(100vh - 65px);
+  }
+  
+  .main-content {
+    margin-left: 250px; /* Sidebar width */
+    padding: 20px;
+    width: calc(100% - 250px);
+    background-color: #f5f5f5;
+    overflow-y: auto;
+  }
+  
 
-.navbar-logo {
-  margin: 0 0 0 16px !important;
-  line-height: 1.235 !important;
-  letter-spacing: 0.00735em !important;
-  color: rgb(255, 255, 255) !important;
-  font-weight: bold !important;
-  font-size: 32px !important;
-  font-family: 'Archer', Georgia, serif !important;
-  text-decoration: none !important;
-}
---------------------------------------------
+  /* Input & Result Section */
+  .input-result-wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  
+ --------------------------------------
+
 import React, { useState } from 'react';
-import './InputBox.css';
+import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
+import InfoBox from './components/InfoBox';
+import InputBox from './components/InputBox';
+import ResultBox from './components/ResultBox';
+import './App.css';
 
-const InputBox = () => {
-  const [formData, setFormData] = useState({
-    applicationId: '',
-    componentName: '',
-    githubToken: '',
-    branchName: '',
-    referenceEnv: '',
-    targetEnv: ''
-  });
+const App = () => {
+  const [selectedInfo, setSelectedInfo] = useState('');
+  const [result, setResult] = useState('');
 
-  const envOptions = ['dev', 'sit', 'uat', 'prodsl', 'prodox'];
+  const handleSidebarClick = (option) => {
+    setSelectedInfo(`Details for ${option}`);
+  };
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+  const handleSubmit = (data) => {
+    setResult(`Processed data: ${data}`);
   };
 
   return (
-    <div className="input-box">
-      <h3>Compare Environments</h3>
-
-      {/* Application ID */}
-      <div className="input-field">
-        <label className={formData.applicationId ? 'active' : ''}>Application Id</label>
-        <input
-          type="text"
-          name="applicationId"
-          value={formData.applicationId}
-          onChange={handleChange}
-        />
+    <div className="app-container">
+      <Navbar />
+      <div className="content-wrapper">
+        <Sidebar onSelect={handleSidebarClick} />
+        <div className="main-content">
+          <InfoBox info={selectedInfo} />
+          <div className="input-result-wrapper">
+            <InputBox onSubmit={handleSubmit} />
+            <ResultBox result={result} />
+          </div>
+        </div>
       </div>
-
-      {/* Component Name */}
-      <div className="input-field">
-        <label className={formData.componentName ? 'active' : ''}>Component Name</label>
-        <input
-          type="text"
-          name="componentName"
-          value={formData.componentName}
-          onChange={handleChange}
-        />
-      </div>
-
-      {/* GitHub Token */}
-      <div className="input-field">
-        <label className={formData.githubToken ? 'active' : ''}>
-          GitHub Personal Access Token (Write Access)
-        </label>
-        <input
-          type="password"
-          name="githubToken"
-          value={formData.githubToken}
-          onChange={handleChange}
-        />
-      </div>
-
-      {/* Branch Name */}
-      <div className="input-field">
-        <label className={formData.branchName ? 'active' : ''}>Branch Name</label>
-        <input
-          type="text"
-          name="branchName"
-          value={formData.branchName}
-          onChange={handleChange}
-        />
-      </div>
-
-      {/* Reference Environment */}
-<div className="input-field">
-  <select
-    name="referenceEnv"
-    value={formData.referenceEnv}
-    onChange={handleChange}
-    className={!formData.referenceEnv ? 'placeholder' : ''}
-  >
-    <option value="" disabled hidden>Reference Environment</option>
-    {envOptions.map((env) => (
-      <option key={env} value={env}>{env}</option>
-    ))}
-  </select>
-</div>
-
-{/* Target Environment */}
-<div className="input-field">
-  <select
-    name="targetEnv"
-    value={formData.targetEnv}
-    onChange={handleChange}
-    className={!formData.targetEnv ? 'placeholder' : ''}
-  >
-    <option value="" disabled hidden>Target Environment</option>
-    {envOptions.map((env) => (
-      <option key={env} value={env}>{env}</option>
-    ))}
-  </select>
-</div>
-
-
-
-
-      {/* Submit Button */}
-      <button className="compare-btn">COMPARE</button>
     </div>
   );
 };
 
-export default InputBox;
------------------------------------
-.input-box {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
-    width: 600px; /* Increased width */
-    max-width: 90%; /* Responsive for smaller screens */
-    margin: 20px auto; /* Center horizontally */
-    overflow: hidden; /* Prevent scroll */
-}
-
-.input-box h3 {
-    margin-bottom: 20px;
-    font-size: 22px;
-    color: #333;
-    text-align: center;
-}
-
-.input-field {
-    position: relative;
-    margin-bottom: 20px;
-}
-
-.input-field label {
-    position: absolute;
-    top: 50%; /* Center vertically */
-    left: 12px;
-    transform: translateY(-50%); /* Adjust for exact center */
-    color: #999;
-    pointer-events: none;
-    transition: all 0.2s ease;
-}
-
-
-.input-field input,
-.input-field select {
-    width: 100%;
-    padding: 12px;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    outline: none;
-    font-size: 14px;
-    box-sizing: border-box;
-}
-
-.input-field input:focus,
-.input-field select:focus {
-    border-color: #d52228;
-}
-
-.input-field input:focus + label,
-.input-field select:focus + label,
-.input-field label.active {
-    top: -10px;
-    left: 8px;
-    font-size: 12px;
-    color: #d52228;
-    background-color: #fff;
-    padding: 0 4px;
-}
-
-.compare-btn {
-    width: 100%;
-    padding: 12px;
-    background-color: #d52228;
-    color: #fff;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-.compare-btn:hover {
-    background-color: #b81e23;
-}
-
-/* Prevent page scrolling */
-body {
-    overflow: hidden;
-}
-
-/* Grey placeholder text */
-select.placeholder {
-    color: #999;
-  }
-  
-  /* Dropdown options in black */
-  select option {
-    color: black;
-  }
-  
-  /* Selected value in black after choosing an option */
-  select:not(.placeholder) {
-    color: black;
-  }
-
-  /* Multi-select dropdown styling */
-select[multiple] {
-    height: auto;
-    min-height: 100px;
-    overflow-y: auto;
-  }
----------------------------------
-import React from 'react';
-import './InfoBox.css';
-
-const InfoBox = ({ info }) => {
-  return (
-    <div className="info-box">
-      <h3>Information</h3>
-      <p>{info || 'Select an option from the sidebar to see details here.'}</p>
-    </div>
-  );
-};
-
-export default InfoBox;
---------------------------------------------
-.info-box {
-  background-color: #e8e8e8;
-  border: 1px solid #ddd;
-  padding: 16px;
-  margin-bottom: 20px;
-  border-radius: 4px;
-}
+export default App;
