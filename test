@@ -1,13 +1,56 @@
-import React from 'react';
-import './InfoBox.css';
+import React, { useState } from 'react';
 
-const InfoBox = ({ title, info }) => {
+import Navbar from './components/Navbar';
+import Sidebar from './components/Sidebar';
+import InfoBox from './components/InfoBox';
+import InputBox from './components/InputBox';
+import ResultPage from './components/ResultPage';
+
+import './App.css';
+
+const App = () => {
+  const [selectedInfo, setSelectedInfo] = useState('');
+  const [showResults, setShowResults] = useState(false);
+  const [resultData, setResultData] = useState(null);
+
+  const handleSidebarClick = (option) => {
+    setSelectedInfo(`Details for ${option}`);
+  };
+
+  const handleCompare = (data) => {
+    setResultData(data);
+    setShowResults(true); // Switch to ResultPage
+  };
+
   return (
-    <div className="info-box">
-      <h3>{title || 'Information'}</h3>
-      <p>{info || 'Select an option from the sidebar to see details here.'}</p>
+    <div className="app-container">
+      <Navbar />
+
+      <div className="content-wrapper">
+        <Sidebar onSelect={handleSidebarClick} />
+
+        <div className="main-content">
+          {/* Dynamic InfoBox */}
+          <InfoBox
+            title={showResults ? 'ConfigDriftValidator' : 'Information'}
+            info={
+              showResults
+                ? 'Identifies and highlights differences between environment configurations'
+                : selectedInfo || 'Select an option from the sidebar to see details here.'
+            }
+          />
+
+          <div className="input-result-wrapper">
+            {showResults ? (
+              <ResultPage data={resultData} onBack={() => setShowResults(false)} />
+            ) : (
+              <InputBox onCompare={handleCompare} />
+            )}
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default InfoBox;
+export default App;
