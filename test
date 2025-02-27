@@ -1,182 +1,105 @@
-import React, { useState } from 'react';
-import axios from 'axios';
-import './InputBox.css';
-
-const InputBox = ({ onCompare }) => {
-    const [formData, setFormData] = useState({
-        applicationId: '',
-        componentName: '',
-        githubToken: '',
-        branchName: '',
-        referenceEnv: '',
-        targetEnv: ''
-    });
-
-    const envOptions = ['dev', 'sit', 'uat', 'prodsl', 'prodox'];
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
-
-    const handleCompare = async (e) => {
-        e.preventDefault();
-        const url = 'https://ca3021-driftvalidatorservice.apps.temr-clfn-n-05.cf.wellsfargo.net/apps/compareEnvs';
-        const requestPayload = {
-            "bearer_token": formData.githubToken,
-            "appid": formData.applicationId,
-            "component": formData.componentName,
-            "branch": formData.branchName,
-            "env1": formData.referenceEnv,
-            "envs": [formData.targetEnv]
-        };
-
-        try {
-            const response = await axios.post(url, requestPayload);
-            const responseData = response.data.uat;  // Assuming UAT contains the relevant data
-
-            onCompare({
-                matching: responseData.matching_keys,
-                mismatching: responseData.mismatching_keys,
-                missing: responseData.missing_keys,
-                total_keys: responseData.total_keys,
-                mismatchinglist: responseData.mismatching_keys_list,
-                missinglist: responseData.missing_keys_list
-            });
-        } catch (error) {
-            console.error('Error fetching comparison result:', error.response?.data || error.message);
-        }
-    };
-
-    return (
-        <div className="input-box">
-            <h3>Compare Environments</h3>
-
-            <div className="input-field">
-                <label>Application Id</label>
-                <input type="text" name="applicationId" value={formData.applicationId} onChange={handleChange} />
-            </div>
-
-            <div className="input-field">
-                <label>Component Name</label>
-                <input type="text" name="componentName" value={formData.componentName} onChange={handleChange} />
-            </div>
-
-            <div className="input-field">
-                <label>GitHub Token</label>
-                <input type="password" name="githubToken" value={formData.githubToken} onChange={handleChange} />
-            </div>
-
-            <div className="input-field">
-                <label>Branch Name</label>
-                <input type="text" name="branchName" value={formData.branchName} onChange={handleChange} />
-            </div>
-
-            <div className="input-field">
-                <select name="referenceEnv" value={formData.referenceEnv} onChange={handleChange}>
-                    <option value="" disabled hidden>Reference Environment</option>
-                    {envOptions.map((env) => <option key={env} value={env}>{env}</option>)}
-                </select>
-            </div>
-
-            <div className="input-field">
-                <select name="targetEnv" value={formData.targetEnv} onChange={handleChange}>
-                    <option value="" disabled hidden>Target Environment</option>
-                    {envOptions.map((env) => <option key={env} value={env}>{env}</option>)}
-                </select>
-            </div>
-
-            <button className="compare-btn" onClick={handleCompare}>COMPARE</button>
-        </div>
-    );
-};
-
-export default InputBox;
-----------------------------
-
 import React from 'react';
+import './ResultPage.css';
 
-const ResultPage = ({ data }) => {
-    if (!data) return <h2>No data available</h2>;
-
+const ResultPage = ({ data, onBack }) => {
     return (
-        <div>
-            <h2>Comparison Results</h2>
-            <table border="1">
+        <div className="result-page">
+            <h2 className="result-title">Comparison Results</h2>
+            <table className="result-table">
                 <thead>
                     <tr>
-                        <th>Total Keys</th>
-                        <th>Matching Keys</th>
-                        <th>Mismatching Keys</th>
-                        <th>Missing Keys</th>
+                        <th>Category</th>
+                        <th>Keys</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>{data.total_keys}</td>
-                        <td>{data.matching}</td>
-                        <td>{data.mismatching}</td>
-                        <td>{data.missing}</td>
+                        <td>Matching Keys</td>
+                        <td>{data?.matching || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td>Mismatching Keys</td>
+                        <td>{data?.mismatching || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td>Missing Keys</td>
+                        <td>{data?.missing || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td>Total Keys</td>
+                        <td>{data?.total_keys || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td>Mismatching List</td>
+                        <td>{data?.mismatchinglist?.join(', ') || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td>Missing List</td>
+                        <td>{data?.missing_list?.join(', ') || 'N/A'}</td>
                     </tr>
                 </tbody>
             </table>
-
-            <h3>Mismatching List</h3>
-            <ul>
-                {data.mismatchinglist?.map((item, index) => <li key={index}>{item}</li>)}
-            </ul>
-
-            <h3>Missing List</h3>
-            <ul>
-                {data.missinglist?.map((item, index) => <li key={index}>{item}</li>)}
-            </ul>
+            <button className="back-button" onClick={onBack}>Back</button>
         </div>
     );
 };
 
 export default ResultPage;
--------------------------------------------
+----------------
 
-import React, { useState } from 'react';
-import Navbar from './components/Navbar';
-import Sidebar from './components/Sidebar';
-import InfoBox from './components/InfoBox';
-import InputBox from './components/InputBox';
-import ResultPage from './components/ResultPage';
-import './App.css';
+.result-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    font-family: Arial, sans-serif;
+}
 
-const App = () => {
-    const [selectedInfo, setSelectedInfo] = useState('');
-    const [showResults, setShowResults] = useState(false);
-    const [resultData, setResultData] = useState(null);
+.result-title {
+    font-size: 24px;
+    font-weight: bold;
+    margin-bottom: 20px;
+    color: #333;
+}
 
-    const handleSidebarClick = (option) => {
-        setSelectedInfo(`Details for ${option}`);
-    };
+.result-table {
+    width: 80%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
 
-    const handleCompare = (data) => {
-        setResultData(data);
-        setShowResults(true); // Switch to ResultPage
-    };
+.result-table th, .result-table td {
+    border: 1px solid #ddd;
+    padding: 10px;
+    text-align: left;
+}
 
-    return (
-        <div className="app-container">
-            <Navbar />
-            <div className="content-wrapper">
-                <Sidebar onSelect={handleSidebarClick} />
-                <div className="main-content">
-                    <InfoBox info={selectedInfo} />
-                    <div className="input-result-wrapper">
-                        {showResults ? (
-                            <ResultPage data={resultData} />
-                        ) : (
-                            <InputBox onCompare={handleCompare} />
-                        )}
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-};
+.result-table th {
+    background-color: #004080;
+    color: white;
+    font-weight: bold;
+}
 
-export default App;
+.result-table tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+.result-table tr:hover {
+    background-color: #ddd;
+}
+
+.back-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background-color: #004080;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.back-button:hover {
+    background-color: #002d5a;
+}
