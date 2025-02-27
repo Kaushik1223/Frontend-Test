@@ -1,33 +1,171 @@
-import React, { useState } from 'react';
-import Navbar from './components/Navbar';
-import Sidebar from './components/Sidebar';
-import InfoBox from './components/InfoBox';
-import InputBox from './components/InputBox';
-import './App.css';
+import React from "react";
+import "./ResultPage.css";
 
-const App = () => {
-  const [selectedInfo, setSelectedInfo] = useState('');
+const ResultPage = ({ data, onBack }) => {
+  return (
+    <div className="result-container">
+      <h2>Comparison Results</h2>
+      <button onClick={onBack} className="back-btn">← Back</button>
+      <table>
+        <thead>
+          <tr>
+            <th>Matching Keys</th>
+            <th>Mismatching Keys</th>
+            <th>Missing Keys</th>
+            <th>Total Keys</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{data.uat?.matching_keys}</td>
+            <td>{data.uat?.mismatching_keys}</td>
+            <td>{data.uat?.missing_keys}</td>
+            <td>{data.uat?.total_keys}</td>
+          </tr>
+        </tbody>
+      </table>
 
-  const handleSidebarClick = (option) => {
-    setSelectedInfo(`Details for ${option}`);
+      <h3>Mismatching List</h3>
+      <ul>
+        {data.uat?.mismatching_keys_list?.map((key, index) => (
+          <li key={index}>{key}</li>
+        ))}
+      </ul>
+
+      <h3>Missing List</h3>
+      <ul>
+        {data.uat?.missing_keys_list?.map((key, index) => (
+          <li key={index}>{key}</li>
+        ))}
+      </ul>
+    </div>
+  );
+};
+
+export default ResultPage;
+----------------------------------------------------
+
+import React, { useState } from "react";
+import axios from "axios";
+import "./InputBox.css";
+
+const InputBox = ({ onCompare }) => {
+  const [formData, setFormData] = useState({
+    applicationId: "",
+    componentName: "",
+    githubToken: "",
+    branchName: "",
+    referenceEnv: "",
+    targetEnv: "",
+  });
+
+  const envOptions = ["dev", "sit", "uat", "prodsl", "prodox"];
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
   };
 
+  const handleCompare = async (e) => {
+    e.preventDefault();
+
+    const url =
+      "https://ca3021-driftvalidatorservice.apps.temr-clfn-n-05.cf.wellsfargo.net/apps/compareEnvs";
+
+    const requestPayload = {
+      bearer_token: formData.githubToken,
+      appid: formData.applicationId,
+      component: formData.componentName,
+      branch: formData.branchName,
+      env1: formData.referenceEnv,
+      envs: [formData.targetEnv],
+    };
+
+    try {
+      const response = await axios.post(url, requestPayload);
+      onCompare(response.data); // Send response data to App.jsx
+    } catch (error) {
+      console.error("Error fetching comparison result:", error);
+    }
+  };
+
+  return (
+    <div className="input-box">
+      <h3>Compare Environments</h3>
+      
+      <div className="input-field">
+        <label className={formData.applicationId ? "active" : ""}>Application Id</label>
+        <input type="text" name="applicationId" value={formData.applicationId} onChange={handleChange} />
+      </div>
+
+      <div className="input-field">
+        <label className={formData.componentName ? "active" : ""}>Component Name</label>
+        <input type="text" name="componentName" value={formData.componentName} onChange={handleChange} />
+      </div>
+
+      <div className="input-field">
+        <label className={formData.githubToken ? "active" : ""}>GitHub Token</label>
+        <input type="password" name="githubToken" value={formData.githubToken} onChange={handleChange} />
+      </div>
+
+      <div className="input-field">
+        <label className={formData.branchName ? "active" : ""}>Branch Name</label>
+        <input type="text" name="branchName" value={formData.branchName} onChange={handleChange} />
+      </div>
+
+      <div className="input-field">
+        <select name="referenceEnv" value={formData.referenceEnv} onChange={handleChange}>
+          <option value="" disabled hidden>Reference Environment</option>
+          {envOptions.map((env) => (
+            <option key={env} value={env}>{env}</option>
+          ))}
+        </select>
+      </div>
+
+      <div className="input-field">
+        <select name="targetEnv" value={formData.targetEnv} onChange={handleChange}>
+          <option value="" disabled hidden>Target Environment</option>
+          {envOptions.map((env) => (
+            <option key={env} value={env}>{env}</option>
+          ))}
+        </select>
+      </div>
+
+      <button className="compare-btn" onClick={handleCompare}>COMPARE</button>
+    </div>
+  );
+};
+
+export default InputBox;
+----------------------------------------
+
+import React, { useState } from "react";
+import Navbar from "./components/Navbar";
+import Sidebar from "./components/Sidebar";
+import InfoBox from "./components/InfoBox";
+import InputBox from "./components/InputBox";
+import ResultPage from "./components/ResultPage"; // Ensure this file exists
+import "./App.css";
+
+const App = () => {
+  const [displayData, setDisplayData] = useState(null);
+
   const handleCompare = (data) => {
-    // Store the data in sessionStorage before opening the result page
-    sessionStorage.setItem("comparisonResult", JSON.stringify(data));
-    window.open("/result", "_blank");
+    setDisplayData(data); // Store the result data
   };
 
   return (
     <div className="app-container">
       <Navbar />
       <div className="content-wrapper">
-        <Sidebar onSelect={handleSidebarClick} />
+        <Sidebar />
         <div className="main-content">
-          <InfoBox info={selectedInfo} />
-          <div className="input-result-wrapper">
+          <InfoBox info="Enter details to compare environments" />
+          {displayData ? (
+            <ResultPage data={displayData} onBack={() => setDisplayData(null)} />
+          ) : (
             <InputBox onCompare={handleCompare} />
-          </div>
+          )}
         </div>
       </div>
     </div>
@@ -35,172 +173,3 @@ const App = () => {
 };
 
 export default App;
------------------------------------------------------
-
-import React, { useState } from 'react';
-import axios from 'axios';
-import './InputBox.css';
-
-const InputBox = () => {
-    const [formData, setFormData] = useState({
-        applicationId: '',
-        componentName: '',
-        githubToken: '',
-        branchName: '',
-        referenceEnv: '',
-        targetEnv: '',
-    });
-
-    const envOptions = ['dev', 'sit', 'uat', 'prodsl', 'prodox'];
-
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-    };
-
-    const handleCompare = async (e) => {
-        e.preventDefault();
-
-        const url = 'https://ca3021-driftvalidatorservice.apps.temr-clfn-n-05.cf.wellsfargo.net/apps/compareEnvs';
-
-        const requestPayload = {
-            "bearer_token": formData.githubToken,
-            "appid": formData.applicationId,
-            "component": formData.componentName,
-            "branch": formData.branchName,
-            "env1": formData.referenceEnv,
-            "envs": [formData.targetEnv]
-        };
-
-        try {
-            const response = await axios.post(url, requestPayload);
-            console.log(response.data);
-
-            // Store results in sessionStorage
-            const resultData = {
-                matching: response.data.uat.matching_keys,
-                mismatching: response.data.uat.mismatching_keys,
-                missing: response.data.uat.missing_keys,
-                total_keys: response.data.uat.total_keys,
-                mismatchinglist: response.data.uat.mismatching_keys_list,
-                missing_list: response.data.uat.missing_keys_list,
-            };
-
-            sessionStorage.setItem("comparisonResult", JSON.stringify(resultData));
-
-            // Open the result page in a new tab
-            window.open("/result", "_blank");
-
-        } catch (error) {
-            if (axios.isAxiosError(error)) {
-                console.error('Axios error fetching comparison result:', error.response?.data || error.message);
-            } else {
-                console.error('Unexpected error fetching comparison result:', error);
-            }
-        }
-    };
-
-    return (
-        <div className="input-box">
-            <h3>Compare Environments</h3>
-
-            {/* Application ID */}
-            <div className="input-field">
-                <label className={formData.applicationId ? 'active' : ''}>Application ID</label>
-                <input type="text" name="applicationId" value={formData.applicationId} onChange={handleChange} />
-            </div>
-
-            {/* Component Name */}
-            <div className="input-field">
-                <label className={formData.componentName ? 'active' : ''}>Component Name</label>
-                <input type="text" name="componentName" value={formData.componentName} onChange={handleChange} />
-            </div>
-
-            {/* GitHub Token */}
-            <div className="input-field">
-                <label className={formData.githubToken ? 'active' : ''}>GitHub Personal Access Token (Write Access)</label>
-                <input type="password" name="githubToken" value={formData.githubToken} onChange={handleChange} />
-            </div>
-
-            {/* Branch Name */}
-            <div className="input-field">
-                <label className={formData.branchName ? 'active' : ''}>Branch Name</label>
-                <input type="text" name="branchName" value={formData.branchName} onChange={handleChange} />
-            </div>
-
-            {/* Reference Environment */}
-            <div className="input-field">
-                <label>Reference Environment</label>
-                <select name="referenceEnv" value={formData.referenceEnv} onChange={handleChange}>
-                    <option value="" disabled hidden>Select Reference Environment</option>
-                    {envOptions.map((env) => (
-                        <option key={env} value={env}>{env}</option>
-                    ))}
-                </select>
-            </div>
-
-            {/* Target Environment */}
-            <div className="input-field">
-                <label>Target Environment</label>
-                <select name="targetEnv" value={formData.targetEnv} onChange={handleChange}>
-                    <option value="" disabled hidden>Select Target Environment</option>
-                    {envOptions.map((env) => (
-                        <option key={env} value={env}>{env}</option>
-                    ))}
-                </select>
-            </div>
-
-            {/* Submit Button */}
-            <button className="compare-btn" onClick={handleCompare}>COMPARE</button>
-        </div>
-    );
-};
-
-export default InputBox;
-----------------------------------------------------
-
-import React, { useEffect, useState } from 'react';
-
-const ResultPage = () => {
-    const [data, setData] = useState(null);
-
-    useEffect(() => {
-        // Retrieve the stored result from sessionStorage
-        const resultData = sessionStorage.getItem("comparisonResult");
-        if (resultData) {
-            setData(JSON.parse(resultData));
-        }
-    }, []);
-
-    if (!data) return <h2>No data available</h2>;
-
-    return (
-        <div>
-            <h2>Comparison Results</h2>
-            <table border="1">
-                <thead>
-                    <tr>
-                        <th>Total Keys</th>
-                        <th>Matching Keys</th>
-                        <th>Mismatching Keys</th>
-                        <th>Missing Keys</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>{data.total_keys}</td>
-                        <td>{data.matching}</td>
-                        <td>{data.mismatching}</td>
-                        <td>{data.missing}</td>
-                    </tr>
-                </tbody>
-            </table>
-            <h3>Mismatching List:</h3>
-            <pre>{JSON.stringify(data.mismatchinglist, null, 2)}</pre>
-            <h3>Missing List:</h3>
-            <pre>{JSON.stringify(data.missing_list, null, 2)}</pre>
-        </div>
-    );
-};
-
-export default ResultPage;
