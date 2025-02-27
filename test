@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import ResultPage from './ResultPage';
 import './InputBox.css';
 
 const InputBox = () => {
@@ -38,73 +39,37 @@ const InputBox = () => {
     try {
       const response = await axios.post(url, requestPayload);
       setResultData(response.data.uat);
-      setShowResults(true);  // Switch to results view
+      setShowResults(true);
     } catch (error) {
       console.error('Error fetching comparison result:', error);
     }
   };
 
   if (showResults) {
-    // Render Results Page
-    return (
-      <div className="result-page">
-        <h2>Comparison Results</h2>
-        <table className="result-table">
-          <thead>
-            <tr>
-              <th>Total Keys</th>
-              <th>Matching Keys</th>
-              <th>Mismatching Keys</th>
-              <th>Missing Keys</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td>{resultData.total_keys}</td>
-              <td>{resultData.matching_keys}</td>
-              <td>{resultData.mismatching_keys}</td>
-              <td>{resultData.missing_keys}</td>
-            </tr>
-          </tbody>
-        </table>
-
-        <h3>Mismatching Keys List</h3>
-        <ul>
-          {resultData.mismatching_keys_list?.map((item, index) => <li key={index}>{item}</li>)}
-        </ul>
-
-        <h3>Missing Keys List</h3>
-        <ul>
-          {resultData.missing_keys_list?.map((item, index) => <li key={index}>{item}</li>)}
-        </ul>
-
-        <button onClick={() => setShowResults(false)}>Back to Comparison</button>
-      </div>
-    );
+    return <ResultPage resultData={resultData} onBack={() => setShowResults(false)} />;
   }
 
-  // Render Input Form
   return (
     <div className="input-box">
       <h3>Compare Environments</h3>
 
       <div className="input-field">
-        <label className={formData.applicationId ? 'active' : ''}>Application Id</label>
+        <label>Application Id</label>
         <input type="text" name="applicationId" value={formData.applicationId} onChange={handleChange} />
       </div>
 
       <div className="input-field">
-        <label className={formData.componentName ? 'active' : ''}>Component Name</label>
+        <label>Component Name</label>
         <input type="text" name="componentName" value={formData.componentName} onChange={handleChange} />
       </div>
 
       <div className="input-field">
-        <label className={formData.githubToken ? 'active' : ''}>GitHub Token</label>
+        <label>GitHub Token</label>
         <input type="password" name="githubToken" value={formData.githubToken} onChange={handleChange} />
       </div>
 
       <div className="input-field">
-        <label className={formData.branchName ? 'active' : ''}>Branch Name</label>
+        <label>Branch Name</label>
         <input type="text" name="branchName" value={formData.branchName} onChange={handleChange} />
       </div>
 
@@ -132,3 +97,108 @@ const InputBox = () => {
 };
 
 export default InputBox;
+-----------------------------------
+
+import React from 'react';
+import './ResultPage.css';
+
+const ResultPage = ({ resultData, onBack }) => {
+  return (
+    <div className="result-page">
+      <h2>Comparison Results</h2>
+      <table className="result-table">
+        <thead>
+          <tr>
+            <th>Total Keys</th>
+            <th>Matching Keys</th>
+            <th>Mismatching Keys</th>
+            <th>Missing Keys</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{resultData?.total_keys}</td>
+            <td>{resultData?.matching_keys}</td>
+            <td>{resultData?.mismatching_keys}</td>
+            <td>{resultData?.missing_keys}</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Mismatching Keys List</h3>
+      <ul>
+        {resultData?.mismatching_keys_list?.map((item, index) => <li key={index}>{item}</li>)}
+      </ul>
+
+      <h3>Missing Keys List</h3>
+      <ul>
+        {resultData?.missing_keys_list?.map((item, index) => <li key={index}>{item}</li>)}
+      </ul>
+
+      <button className="back-btn" onClick={onBack}>Back to Comparison</button>
+    </div>
+  );
+};
+
+export default ResultPage;
+---------------------------------------
+
+.result-page {
+  width: 50%;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background: #fff;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+  text-align: center;
+}
+
+.result-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.result-table th, .result-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: left;
+}
+
+.result-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.result-page ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.result-page ul li {
+  padding: 5px;
+  background: #f9f9f9;
+  margin: 5px 0;
+  border-radius: 4px;
+}
+
+.back-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.back-btn:hover {
+  background-color: #0056b3;
+}
