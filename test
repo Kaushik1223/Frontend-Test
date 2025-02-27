@@ -1,105 +1,86 @@
 import React from 'react';
 import './ResultPage.css';
 
-const ResultPage = ({ data, onBack }) => {
+const ResultPage = ({ environmentName, data }) => {
     return (
         <div className="result-page">
-            <h2 className="result-title">Comparison Results</h2>
+            <h2 className="result-title">ConfigDriftValidator - Identifies and highlights differences between environment configurations</h2>
+            
+            <h3 className="environment-name">{environmentName}</h3>
+
             <table className="result-table">
                 <thead>
                     <tr>
-                        <th>Category</th>
-                        <th>Keys</th>
+                        <th>Description</th>
+                        <th>Value</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr>
-                        <td>Matching Keys</td>
+                        <td>Total number of properties found</td>
+                        <td>{data?.total_properties || 'N/A'}</td>
+                    </tr>
+                    <tr>
+                        <td>Number of Matching properties</td>
                         <td>{data?.matching || 'N/A'}</td>
                     </tr>
                     <tr>
-                        <td>Mismatching Keys</td>
-                        <td>{data?.mismatching || 'N/A'}</td>
-                    </tr>
-                    <tr>
-                        <td>Missing Keys</td>
+                        <td>Number of Missing properties</td>
                         <td>{data?.missing || 'N/A'}</td>
                     </tr>
                     <tr>
-                        <td>Total Keys</td>
-                        <td>{data?.total_keys || 'N/A'}</td>
-                    </tr>
-                    <tr>
-                        <td>Mismatching List</td>
-                        <td>{data?.mismatchinglist?.join(', ') || 'N/A'}</td>
-                    </tr>
-                    <tr>
-                        <td>Missing List</td>
-                        <td>{data?.missing_list?.join(', ') || 'N/A'}</td>
+                        <td>Number of Mismatching values</td>
+                        <td>{data?.mismatching || 'N/A'}</td>
                     </tr>
                 </tbody>
             </table>
-            <button className="back-button" onClick={onBack}>Back</button>
         </div>
     );
 };
 
 export default ResultPage;
-----------------
+--------------------------------
 
 .result-page {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
+    width: 80%;
+    margin: 40px auto;
     font-family: Arial, sans-serif;
 }
 
 .result-title {
-    font-size: 24px;
+    font-size: 22px;
     font-weight: bold;
-    margin-bottom: 20px;
-    color: #333;
+    margin-bottom: 15px;
+    color: #000;
+}
+
+.environment-name {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 10px;
 }
 
 .result-table {
-    width: 80%;
+    width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
 }
 
 .result-table th, .result-table td {
     border: 1px solid #ddd;
-    padding: 10px;
+    padding: 12px;
     text-align: left;
 }
 
 .result-table th {
-    background-color: #004080;
-    color: white;
+    background-color: #f2f2f2;
     font-weight: bold;
 }
 
 .result-table tr:nth-child(even) {
-    background-color: #f2f2f2;
+    background-color: #fafafa;
 }
 
 .result-table tr:hover {
-    background-color: #ddd;
-}
-
-.back-button {
-    margin-top: 20px;
-    padding: 10px 20px;
-    font-size: 16px;
-    background-color: #004080;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-.back-button:hover {
-    background-color: #002d5a;
+    background-color: #f1f1f1;
 }
