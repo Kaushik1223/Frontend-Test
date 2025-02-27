@@ -1,108 +1,59 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import "./InputBox.css";
+import React, { useEffect, useState } from "react";
+import "./ResultsPage.css";
 
-const InputBox = () => {
-  const [formData, setFormData] = useState({
-    applicationId: "",
-    componentName: "",
-    githubToken: "",
-    branchName: "",
-    referenceEnv: "",
-    targetEnv: [],
-  });
+const ResultsPage = () => {
+  const [displayData, setDisplayData] = useState(null);
 
-  const navigate = useNavigate(); // To navigate to the results page
-  const envOptions = ["dev", "sit", "uat", "prodsl", "prodox"];
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
-
-  const handleTargetEnvChange = (e) => {
-    const selectedValues = Array.from(e.target.selectedOptions, (option) => option.value);
-    setFormData({ ...formData, targetEnv: selectedValues });
-  };
-
-  const handleCompare = async (e) => {
-    e.preventDefault();
-
-    const url = "https://ca3021-driftvalidatorservice.apps.temr-clfn-n-05.cf.wellsfargo.net/apps/compareEnvs";
-
-    const requestPayload = {
-      bearer_token: formData.githubToken,
-      appid: formData.applicationId,
-      component: formData.componentName,
-      branch: formData.branchName,
-      env1: formData.referenceEnv,
-      envs: formData.targetEnv,
-    };
-
-    try {
-      const response = await axios.post(url, requestPayload);
-
-      // Open results in a new tab and pass data
-      const newWindow = window.open("/results", "_blank");
-      newWindow.data = response.data;
-    } catch (error) {
-      console.error("Error fetching comparison results", error);
+  useEffect(() => {
+    // Fetch data from window object
+    if (window.opener && window.opener.data) {
+      setDisplayData(window.opener.data);
     }
-  };
+  }, []);
+
+  if (!displayData) {
+    return <h2>No Data Available</h2>;
+  }
 
   return (
-    <div className="input-box">
-      <h3>Compare Environments</h3>
+    <div className="results-page">
+      <h2>Comparison Results</h2>
 
-      <div className="input-field">
-        <label>Application Id</label>
-        <input type="text" name="applicationId" value={formData.applicationId} onChange={handleChange} />
-      </div>
+      <table className="results-table">
+        <thead>
+          <tr>
+            <th>Total Properties</th>
+            <th>Matching Properties</th>
+            <th>Missing Properties</th>
+            <th>Mismatching Properties</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>{displayData.total_keys || "N/A"}</td>
+            <td>{displayData.matching || "N/A"}</td>
+            <td>{displayData.missing || "N/A"}</td>
+            <td>{displayData.mismatching || "N/A"}</td>
+          </tr>
+        </tbody>
+      </table>
 
-      <div className="input-field">
-        <label>Component Name</label>
-        <input type="text" name="componentName" value={formData.componentName} onChange={handleChange} />
-      </div>
+      {/* Detailed mismatched properties */}
+      {displayData.mismatching_keys_list && (
+        <div className="mismatch-container">
+          <h3>Mismatched Properties</h3>
+          <pre>{JSON.stringify(displayData.mismatching_keys_list, null, 2)}</pre>
+        </div>
+      )}
 
-      <div className="input-field">
-        <label>GitHub Token</label>
-        <input type="password" name="githubToken" value={formData.githubToken} onChange={handleChange} />
-      </div>
-
-      <div className="input-field">
-        <label>Branch Name</label>
-        <input type="text" name="branchName" value={formData.branchName} onChange={handleChange} />
-      </div>
-
-      <div className="input-field">
-        <label>Reference Environment</label>
-        <select name="referenceEnv" value={formData.referenceEnv} onChange={handleChange}>
-          <option value="" disabled>Select Environment</option>
-          {envOptions.map((env) => (
-            <option key={env} value={env}>
-              {env}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <div className="input-field">
-        <label>Target Environment</label>
-        <select name="targetEnv" multiple value={formData.targetEnv} onChange={handleTargetEnvChange}>
-          {envOptions.map((env) => (
-            <option key={env} value={env}>
-              {env}
-            </option>
-          ))}
-        </select>
-      </div>
-
-      <button className="compare-btn" onClick={handleCompare}>
-        COMPARE
-      </button>
+      {displayData.missing_keys_list && (
+        <div className="missing-container">
+          <h3>Missing Properties</h3>
+          <pre>{JSON.stringify(displayData.missing_keys_list, null, 2)}</pre>
+        </div>
+      )}
     </div>
   );
 };
 
-export default InputBox;
+export default ResultsPage;
