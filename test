@@ -1,55 +1,13 @@
-const handleCompare = () => {
-    setShowResultPage(true); // Track that we are in ResultPage
+import React from 'react';
+import './InfoBox.css';
+
+const InfoBox = ({ title, info }) => {
+  return (
+    <div className="info-box">
+      <h3>{title || 'Information'}</h3>
+      <p>{info || 'Select an option from the sidebar to see details here.'}</p>
+    </div>
+  );
 };
-----------------------------
 
-import React, { useState } from 'react';
-import InputBox from './InputBox';
-import ResultPage from './ResultPage';
-import Sidebar from './Sidebar'; // Your sidebar component
-import InfoBox from './InfoBox'; // Your info box component
-
-function App() {
-    const [showResultPage, setShowResultPage] = useState(false);
-
-    return (
-        <div>
-            {/* Hide Sidebar & InfoBox when in ResultPage */}
-            {!showResultPage && <Sidebar />}
-            {!showResultPage && <InfoBox />}
-            
-            {/* Render InputBox or ResultPage based on state */}
-            {!showResultPage ? (
-                <InputBox setShowResultPage={setShowResultPage} />
-            ) : (
-                <ResultPage onBack={() => setShowResultPage(false)} />
-            )}
-        </div>
-    );
-}
-
-export default App;
----------------------------------
-
-const InputBox = ({ setShowResultPage }) => {
-    const handleCompare = () => {
-        setShowResultPage(true); // Switch to ResultPage
-    };
-
-    return (
-        <div>
-            <button onClick={handleCompare}>Compare</button>
-        </div>
-    );
-};
--------------------------------------
-
-const ResultPage = ({ onBack }) => {
-    return (
-        <div>
-            <h2>Results</h2>
-            {/* Your result content here */}
-            <button onClick={onBack}>Back</button>
-        </div>
-    );
-};
+export default InfoBox;
