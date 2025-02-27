@@ -1,50 +1,15 @@
-import React from 'react';
-import './ResultPage.css';
-
-const ResultPage = ({ environmentName, data }) => {
-    return (
-        <div className="result-page">
-            <h2 className="result-title">ConfigDriftValidator - Identifies and highlights differences between environment configurations</h2>
-            
-            <h3 className="environment-name">{environmentName}</h3>
-
-            <table className="result-table">
-                <thead>
-                    <tr>
-                        <th>Description</th>
-                        <th>Value</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td>Total number of properties found</td>
-                        <td>{data?.total_properties || 'N/A'}</td>
-                    </tr>
-                    <tr>
-                        <td>Number of Matching properties</td>
-                        <td>{data?.matching || 'N/A'}</td>
-                    </tr>
-                    <tr>
-                        <td>Number of Missing properties</td>
-                        <td>{data?.missing || 'N/A'}</td>
-                    </tr>
-                    <tr>
-                        <td>Number of Mismatching values</td>
-                        <td>{data?.mismatching || 'N/A'}</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    );
-};
-
-export default ResultPage;
---------------------------------
-
-.result-page {
+.result-page-container {
     width: 80%;
     margin: 40px auto;
     font-family: Arial, sans-serif;
+    text-align: center;
+}
+
+.result-page {
+    background: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .result-title {
@@ -52,12 +17,6 @@ export default ResultPage;
     font-weight: bold;
     margin-bottom: 15px;
     color: #000;
-}
-
-.environment-name {
-    font-size: 18px;
-    font-weight: bold;
-    margin-bottom: 10px;
 }
 
 .result-table {
@@ -84,3 +43,103 @@ export default ResultPage;
 .result-table tr:hover {
     background-color: #f1f1f1;
 }
+
+.mismatch-section, .missing-section {
+    margin-top: 20px;
+    text-align: left;
+}
+
+.mismatch-title, .missing-title {
+    font-size: 18px;
+    margin-bottom: 10px;
+}
+
+.styled-text {
+    background: #f8f8f8;
+    padding: 10px;
+    border-radius: 5px;
+    font-family: monospace;
+    white-space: pre-wrap;
+}
+
+.back-button {
+    margin-top: 20px;
+    padding: 10px 20px;
+    font-size: 16px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.back-button:hover {
+    background: #0056b3;
+}
+--------------------------------
+
+import React from 'react';
+import './ResultPage.css';
+
+const renderStyledText = (textArray) => {
+    const text = textArray.map((item, index) => `${index + 1}. ${item}`).join('\n');
+    return <pre className="styled-text">{text}</pre>;
+};
+
+const ResultPage = ({ data, onBack }) => {
+    return (
+        <div className="result-page-container">
+            <div className="result-page">
+                <h2 className="result-title">Comparison Results</h2>
+                <h1>Results will be displayed here</h1>
+
+                <table className="result-table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th>Values</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Matching keys</td>
+                            <td>{data.matching}</td>
+                        </tr>
+                        <tr>
+                            <td>Mismatching keys</td>
+                            <td>{data.mismatching}</td>
+                        </tr>
+                        <tr>
+                            <td>Missing keys</td>
+                            <td>{data.missing}</td>
+                        </tr>
+                        <tr>
+                            <td>Total keys</td>
+                            <td>{data.total_keys}</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                {data.mismatchinglist && data.mismatchinglist.length > 0 && (
+                    <div className="mismatch-section">
+                        <p className="mismatch-title">
+                            <b>Highlighted the mismatches below:</b> Certain properties like Venafi are environment specific, and a mismatch may be expected. Others are environment agnostic and should be reviewed to ensure consistency.
+                        </p>
+                        {renderStyledText(data.mismatchinglist)}
+                    </div>
+                )}
+
+                {data.missing_list && data.missing_list.length > 0 && (
+                    <div className="missing-section">
+                        <p className="missing-title"><b>Missing keys:</b></p>
+                        {renderStyledText(data.missing_list)}
+                    </div>
+                )}
+            </div>
+
+            <button className="back-button" onClick={onBack}>Back</button>
+        </div>
+    );
+};
+
+export default ResultPage;
