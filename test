@@ -1,27 +1,25 @@
-import React, { useEffect, useState } from "react";
-import "./ResultPage.css";
+import React, { useState, useEffect } from "react";
+import "./ResultPage.css"; // Add styling as needed
 
 const ResultsPage = () => {
   const [displayData, setDisplayData] = useState(null);
 
   useEffect(() => {
-    if (window.opener && window.opener.data) {
-      setDisplayData(window.opener.data);
+    // Retrieve data passed from InputBox
+    const receivedData = window.data;
+    if (receivedData) {
+      setDisplayData(receivedData);
     }
   }, []);
 
   if (!displayData) {
-    return <h2>No Data Available</h2>;
+    return <h2>No data available</h2>;
   }
 
   return (
-    <div className="results-page">
-      <header className="navbar">
-        <h1>OpenShiftAccelerate</h1>
-      </header>
-
-      <h2>ConfigDriftValidator - Identifies and highlights differences between environment configurations</h2>
-      <h3>{displayData.environment || "Environment"}</h3>
+    <div className="results-container">
+      <h2>ConfigDriftValidator - Identifies and Highlights Differences</h2>
+      <h3>{displayData.environment.toUpperCase()}</h3>
 
       <table className="results-table">
         <thead>
@@ -33,68 +31,38 @@ const ResultsPage = () => {
         <tbody>
           <tr>
             <td>Total number of properties found</td>
-            <td>{displayData.total_keys || "N/A"}</td>
+            <td>{displayData.total_keys}</td>
           </tr>
           <tr>
             <td>Number of Matching properties</td>
-            <td>{displayData.matching || "N/A"}</td>
+            <td>{displayData.matching}</td>
           </tr>
           <tr>
             <td>Number of Missing properties</td>
-            <td>{displayData.missing || "N/A"}</td>
+            <td>{displayData.missing}</td>
           </tr>
           <tr>
             <td>Number of Mismatching values</td>
-            <td>{displayData.mismatching || "N/A"}</td>
+            <td>{displayData.mismatching}</td>
           </tr>
         </tbody>
       </table>
 
-      <p className="highlight-info">
-        Highlighted the mismatches below. Certain properties like venafi are environment-specific and a mismatch may be expected. Others are environment-agnostic and should be reviewed to ensure consistency.
-      </p>
+      <h3>Mismatching List</h3>
+      <ul>
+        {displayData.mismatching_list.map((item, index) => (
+          <li key={index}>{item}</li>
+        ))}
+      </ul>
+
+      <h3>Missing List</h3>
+      <ul>
+        {displayData.missing_list.map((item, index) => (
+          <li key={index}>{item}</li>
+        ))}
+      </ul>
     </div>
   );
 };
 
 export default ResultsPage;
-------------------------------------------
-
-.results-page {
-    text-align: center;
-    margin: 20px;
-  }
-  
-  .navbar {
-    background: #d7302d;
-    padding: 15px;
-    color: white;
-    text-align: left;
-    font-size: 22px;
-    font-weight: bold;
-  }
-  
-  .results-table {
-    width: 80%;
-    margin: 20px auto;
-    border-collapse: collapse;
-  }
-  
-  .results-table th,
-  .results-table td {
-    border: 1px solid #ddd;
-    padding: 12px;
-    text-align: left;
-  }
-  
-  .results-table th {
-    background-color: #f2f2f2;
-  }
-  
-  .highlight-info {
-    width: 80%;
-    margin: auto;
-    font-style: italic;
-    color: #555;
-  }
-  
