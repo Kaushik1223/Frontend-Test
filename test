@@ -1,56 +1,28 @@
-import React, { useState } from 'react';
-
-import Navbar from './components/Navbar';
-import Sidebar from './components/Sidebar';
-import InfoBox from './components/InfoBox';
-import InputBox from './components/InputBox';
-import ResultPage from './components/ResultPage';
-
-import './App.css';
-
-const App = () => {
-  const [selectedInfo, setSelectedInfo] = useState('');
-  const [showResults, setShowResults] = useState(false);
-  const [resultData, setResultData] = useState(null);
-
-  const handleSidebarClick = (option) => {
-    setSelectedInfo(`Details for ${option}`);
-  };
-
-  const handleCompare = (data) => {
-    setResultData(data);
-    setShowResults(true); // Switch to ResultPage
-  };
-
-  return (
-    <div className="app-container">
-      <Navbar />
-
-      <div className="content-wrapper">
-        <Sidebar onSelect={handleSidebarClick} />
-
-        <div className="main-content">
-          {/* Dynamic InfoBox */}
-          <InfoBox
-            title={showResults ? 'ConfigDriftValidator' : 'Information'}
-            info={
-              showResults
-                ? 'Identifies and highlights differences between environment configurations'
-                : selectedInfo || 'Select an option from the sidebar to see details here.'
-            }
-          />
-
-          <div className="input-result-wrapper">
-            {showResults ? (
-              <ResultPage data={resultData} onBack={() => setShowResults(false)} />
-            ) : (
-              <InputBox onCompare={handleCompare} />
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default App;
+<div>
+  <h1>Summary</h1>
+  <table 
+    className="result-table" 
+    style={{ borderCollapse: "collapse", width: "60%", textAlign: "center" }}
+  >
+    <thead>
+      <tr>
+        <th style={{ padding: "10px", borderBottom: "2px solid black" }}>Environment</th>
+        <th style={{ padding: "10px", borderBottom: "2px solid black" }}>Matching keys</th>
+        <th style={{ padding: "10px", borderBottom: "2px solid black" }}>Mismatching keys</th>
+        <th style={{ padding: "10px", borderBottom: "2px solid black" }}>Missing keys</th>
+        <th style={{ padding: "10px", borderBottom: "2px solid black" }}>Total keys</th>
+      </tr>
+    </thead>
+    <tbody>
+      {table.map((t) => (
+        <tr key={t.target}>
+          <td style={{ padding: "10px", borderBottom: "1px solid gray" }}>{t.target}</td>
+          <td style={{ padding: "10px", borderBottom: "1px solid gray" }}>{t.matching}</td>
+          <td style={{ padding: "10px", borderBottom: "1px solid gray" }}>{t.mismatching}</td>
+          <td style={{ padding: "10px", borderBottom: "1px solid gray" }}>{t.missing}</td>
+          <td style={{ padding: "10px", borderBottom: "1px solid gray" }}>{t.total}</td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+</div>
