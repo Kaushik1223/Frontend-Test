@@ -1,28 +1,46 @@
-<div>
-  <h1>Summary</h1>
-  <table 
-    className="result-table" 
-    style={{ borderCollapse: "collapse", width: "60%", textAlign: "center" }}
-  >
-    <thead>
-      <tr>
-        <th style={{ padding: "10px", borderBottom: "2px solid black" }}>Environment</th>
-        <th style={{ padding: "10px", borderBottom: "2px solid black" }}>Matching keys</th>
-        <th style={{ padding: "10px", borderBottom: "2px solid black" }}>Mismatching keys</th>
-        <th style={{ padding: "10px", borderBottom: "2px solid black" }}>Missing keys</th>
-        <th style={{ padding: "10px", borderBottom: "2px solid black" }}>Total keys</th>
-      </tr>
-    </thead>
-    <tbody>
-      {table.map((t) => (
-        <tr key={t.target}>
-          <td style={{ padding: "10px", borderBottom: "1px solid gray" }}>{t.target}</td>
-          <td style={{ padding: "10px", borderBottom: "1px solid gray" }}>{t.matching}</td>
-          <td style={{ padding: "10px", borderBottom: "1px solid gray" }}>{t.mismatching}</td>
-          <td style={{ padding: "10px", borderBottom: "1px solid gray" }}>{t.missing}</td>
-          <td style={{ padding: "10px", borderBottom: "1px solid gray" }}>{t.total}</td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-</div>
+.input-field {
+  position: relative;
+  margin-bottom: 20px;
+  width: 100%; /* Ensures all input fields take full width */
+}
+
+.input-field label {
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  color: #999;
+  pointer-events: none;
+  transition: all 0.2s ease;
+  background-color: white;
+  padding: 0 4px;
+}
+
+.input-field input,
+.input-field select,
+.input-field .css-1uccc91-singleValue, /* Fixes React-Select dropdown width */
+.input-field .css-2b097c-container {
+  width: 100% !important; /* Forces full width */
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  outline: none;
+  font-size: 20px;
+  box-sizing: border-box;
+}
+
+.input-field input:focus,
+.input-field select:focus {
+  border-color: #d52228;
+}
+
+.input-field input:focus + label,
+.input-field select:focus + label,
+.input-field label.active {
+  top: -10px;
+  left: 8px;
+  font-size: 15px;
+  color: #000000;
+  background-color: #fff;
+  padding: 0 4px;
+}
