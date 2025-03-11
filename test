@@ -1,11 +1,16 @@
-import React, { useState } from "react";
+import React, { useEffect } from "react";
 
 function ErrorMessage({ message, onClose }) {
-  if (!message) return null; // Don't show if there's no error message
+  useEffect(() => {
+    const timer = setTimeout(onClose, 3000); // Auto close after 3 seconds
+    return () => clearTimeout(timer); // Cleanup timer on unmount
+  }, [onClose]);
+
+  if (!message) return null; // Don't render if no error message
 
   return (
     <div
-      onClick={onClose} // Close when clicked
+      onClick={onClose} // Allow manual closing on click
       style={{
         position: "fixed",
         top: "50%",
