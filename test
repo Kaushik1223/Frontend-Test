@@ -1,22 +1,26 @@
-function ErrorMessage({ message }) {
+import React, { useState } from "react";
+
+function ErrorMessage({ message, onClose }) {
   if (!message) return null; // Don't show if there's no error message
 
   return (
     <div
+      onClick={onClose} // Close when clicked
       style={{
         position: "fixed",
         top: "50%",
         left: "50%",
         transform: "translate(-50%, -50%)",
-        backgroundColor: "rgba(255, 0, 0, 0.9)", // Red with transparency
+        backgroundColor: "rgba(255, 0, 0, 0.7)", // Light transparent red
         color: "white",
         padding: "15px 20px",
         borderRadius: "8px",
-        border: "2px solid darkred",
+        border: "2px solid rgba(139, 0, 0, 0.8)", // Dark red border
         fontWeight: "bold",
         textAlign: "center",
         width: "300px",
-        boxShadow: "0px 0px 10px rgba(0, 0, 0, 0.5)",
+        boxShadow: "0px 0px 15px rgba(0, 0, 0, 0.4)", // Smooth shadow
+        cursor: "pointer", // Indicate it's clickable
         zIndex: 1000,
       }}
     >
