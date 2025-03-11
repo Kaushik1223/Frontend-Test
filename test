@@ -1,49 +1,49 @@
-function ErrorMessage({ message }) {
+import React from "react";
+
+const ErrorMessage = ({ error, onClose }) => {
+  if (!error) return null; // Do not show when there's no error
+
   return (
-    <div
-      className="errorbox"
-      style={{
-        color: "white",
-        backgroundColor: "red",
-        padding: "10px",
-        borderRadius: "5px",
-        border: "1px solid darkred",
-        fontWeight: "bold",
-        textAlign: "center",
-        width: "fit-content",
-        margin: "10px auto",
-        position: "fixed",
-        top: "20px",
-        left: "50%",
-        transform: "translateX(-50%)",
-        boxShadow: "0 0 10px rgba(0, 0, 0, 0.5)",
-        opacity: 0,
-        animation: "fadeIn 0.5s ease-in-out forwards, fadeOut 3s ease-in-out 2.5s forwards",
-      }}
-    >
-      {message}
-      <style>
-        {`
-          @keyframes fadeIn {
-            from {
-              opacity: 0;
-              transform: translate(-50%, -10px);
-            }
-            to {
-              opacity: 1;
-              transform: translate(-50%, 0);
-            }
-          }
-          @keyframes fadeOut {
-            from {
-              opacity: 1;
-            }
-            to {
-              opacity: 0;
-            }
-          }
-        `}
-      </style>
+    <div style={styles.overlay}>
+      <div style={styles.modal}>
+        <h2>Error</h2>
+        <p>{error}</p>
+        <button onClick={onClose} style={styles.closeButton}>Close</button>
+      </div>
     </div>
   );
-}
+};
+
+const styles = {
+  overlay: {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0, 0, 0, 0.6)",
+    display: "flex",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+  },
+  modal: {
+    backgroundColor: "white",
+    padding: "20px",
+    borderRadius: "8px",
+    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+    textAlign: "center",
+    maxWidth: "400px",
+  },
+  closeButton: {
+    marginTop: "10px",
+    padding: "8px 16px",
+    backgroundColor: "red",
+    color: "white",
+    border: "none",
+    borderRadius: "4px",
+    cursor: "pointer",
+  },
+};
+
+export default ErrorMessage;
