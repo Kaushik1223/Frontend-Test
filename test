@@ -13,12 +13,20 @@ import Select from "react-select";
     onChange={handlemulti}
     isMulti={true}
     hideSelectedOptions={false}
-    getOptionLabel={(e) => (
-      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-        <input type="checkbox" checked={selectedOptions?.some(opt => opt.value === e.value)} readOnly />
-        <span>{e.label}</span>
-      </div>
-    )}
-    formatOptionLabel={(e) => <span>{e.label}</span>} // Ensures selected display shows only text
+    getOptionLabel={(e) => e.label} // Ensures only text appears in selected values
+    formatOptionLabel={(e, { context }) =>
+      context === "menu" ? (
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <input
+            type="checkbox"
+            checked={selectedOptions?.some(opt => opt.value === e.value)}
+            readOnly
+          />
+          <span>{e.label}</span>
+        </div>
+      ) : (
+        e.label // Shows only text in the selected area
+      )
+    }
   />
 </div>;
