@@ -1,32 +1,110 @@
-import Select from "react-select";
+import React from 'react';
+import './ResultPage.css';
 
-<div className="input-field">
-  <Select
-    placeholder="Target Environment"
-    name="targetEnv"
-    options={filteredOptions()}
-    closeMenuOnSelect={false}
-    menuPortalTarget={document.body}
-    required
-    isDisabled={isDisabled.targetEnv}
-    value={selectedOptions}
-    onChange={handlemulti}
-    isMulti={true}
-    hideSelectedOptions={false}
-    getOptionLabel={(e) => e.label} // Ensures only text appears in selected values
-    formatOptionLabel={(e, { context }) =>
-      context === "menu" ? (
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <input
-            type="checkbox"
-            checked={selectedOptions?.some(opt => opt.value === e.value)}
-            readOnly
-          />
-          <span>{e.label}</span>
-        </div>
-      ) : (
-        e.label // Shows only text in the selected area
-      )
+const renderStyledText = (textArray) => {
+    const text = textArray.map((item, index) => `${index + 1}.${item}`).join('\n');
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(text, 'text/html');
+    const spans = doc.querySelectorAll('span');
+
+    spans.forEach((span) => {
+        const style = span.getAttribute('style');
+        if (style) {
+            span.style.cssText = style;
+        }
+    });
+
+    return <div component="span" dangerouslySetInnerHTML={{ __html: doc.body.innerHTML }} />;
+};
+
+const ResultPage = ({ data, onBack }) => {
+    let table = [];
+
+    for (let i = 0; i < Object.keys(data).length; i++) {
+        table.push({
+            "target": data[i].target.toUpperCase(),
+            "ref": data[0].reference.toUpperCase(),
+            "component": data[0].component,
+            "matching": data[i].matching,
+            "mismatching": data[i].mismatching,
+            "missing": data[i].missing,
+            "total": data[i].total_keys,
+        });
     }
-  />
-</div>;
+
+    // Function to scroll to mismatching list of specific environment
+    const scrollToMismatching = (targetEnv) => {
+        const element = document.getElementById(`env-${targetEnv}`);
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    return (
+        <div>
+            <button className="back-button" onClick={onBack}>Back</button>
+            <h1>Component - {table[0].component}</h1>
+            <h1>Summary - {table[0].ref}</h1>
+
+            <table className="result-table" style={{ borderSpacing: "10px", width: "auto" }}>
+                <thead>
+                    <tr>
+                        <th style={{ padding: "10px" }}>Environment</th>
+                        <th style={{ padding: "10px" }}>Matching keys</th>
+                        <th style={{ padding: "10px" }}>Mismatching keys</th>
+                        <th style={{ padding: "10px" }}>Missing keys</th>
+                        <th style={{ padding: "10px" }}>Total keys</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {table.map((t) => (
+                        <tr key={t.target}>
+                            <td style={{ padding: "10px", backgroundColor: "white" }}>{t.target}</td>
+                            <td style={{ padding: "10px", backgroundColor: "white" }}>{t.matching}</td>
+                            <td style={{ padding: "10px", backgroundColor: "white", cursor: "pointer", color: "blue", textDecoration: "underline" }}>
+                                <button 
+                                    style={{ background: "none", border: "none", cursor: "pointer", color: "blue", textDecoration: "underline" }} 
+                                    onClick={() => scrollToMismatching(t.target)}
+                                >
+                                    {t.mismatching}
+                                </button>
+                            </td>
+                            <td style={{ padding: "10px", backgroundColor: "white" }}>{t.missing}</td>
+                            <td style={{ padding: "10px", backgroundColor: "white" }}>{t.total}</td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+
+            {data.map((d) => (
+                <div key={d.target} id={`env-${d.target.toUpperCase()}`}>
+                    <h1>{d.target.toUpperCase()}</h1>
+                    <br />
+
+                    {d.missinglist && d.missinglist.length > 0 && (
+                        <>
+                            <div sx={{ minHeight: '20px' }}></div>
+                            <div sx={{ fontSize: '20px' }}><b>List of missing keys:</b></div>
+                            <pre>{d.missinglist.map((item, index) => `${index + 1}.${item}`).join('\n')}</pre>
+                        </>
+                    )}
+
+                    {d.mismatchinglist && d.mismatchinglist.length > 0 && (
+                        <>
+                            <div sx={{ minHeight: '20px' }}></div>
+                            <div sx={{ fontSize: '20px' }}>
+                                <b>Highlighted the mismatches below. Certain properties like venafi are environment specific and a mismatch may be expected. Others are environment agnostic and should be reviewed to ensure consistency.</b>
+                            </div>
+                            <div style={{ overflowX: 'auto', width: '100%' }}>
+                                <pre>{renderStyledText(d.mismatchinglist)}</pre>
+                            </div>
+                        </>
+                    )}
+                    <br />
+                </div>
+            ))}
+        </div>
+    );
+};
+
+export default ResultPage;
