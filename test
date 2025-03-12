@@ -5,11 +5,17 @@ function ErrorMessage({ message, onClose }) {
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setVisible(false);
-      onClose(); // Call onClose when auto-dismiss happens
+      handleClose();
     }, 3000);
     return () => clearTimeout(timer);
-  }, [onClose]);
+  }, []);
+
+  const handleClose = () => {
+    setVisible(false);
+    if (typeof onClose === "function") {
+      onClose(); // Call onClose only if it is a function
+    }
+  };
 
   if (!visible) return null;
 
@@ -35,10 +41,7 @@ function ErrorMessage({ message, onClose }) {
     >
       <p>{message}</p>
       <button
-        onClick={() => {
-          setVisible(false);
-          onClose();
-        }}
+        onClick={handleClose}
         style={{
           backgroundColor: "white",
           color: "red",
