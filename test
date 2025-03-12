@@ -1,61 +1,22 @@
-import { useEffect, useState } from "react";
+import Select from "react-select";
 
-function ErrorMessage({ message, onClose }) {
-  const [visible, setVisible] = useState(true);
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      handleClose();
-    }, 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
-  const handleClose = () => {
-    setVisible(false);
-    if (typeof onClose === "function") {
-      onClose(); // Call onClose only if it is a function
-    }
-  };
-
-  if (!visible) return null;
-
-  return (
-    <div
-      className="errorbox"
-      style={{
-        position: "fixed",
-        top: "50%",
-        left: "50%",
-        transform: "translate(-50%, -50%)",
-        backgroundColor: "rgba(255, 0, 0, 0.8)", // Semi-transparent red
-        color: "white",
-        padding: "15px 20px",
-        borderRadius: "8px",
-        border: "2px solid darkred",
-        fontWeight: "bold",
-        textAlign: "center",
-        width: "300px",
-        boxShadow: "0px 0px 15px rgba(0, 0, 0, 0.4)",
-        zIndex: 1000,
-      }}
-    >
-      <p>{message}</p>
-      <button
-        onClick={handleClose}
-        style={{
-          backgroundColor: "white",
-          color: "red",
-          border: "none",
-          padding: "5px 10px",
-          cursor: "pointer",
-          fontWeight: "bold",
-          marginTop: "10px",
-        }}
-      >
-        Dismiss
-      </button>
-    </div>
-  );
-}
-
-export default ErrorMessage;
+<div className="input-field">
+  <Select
+    placeholder="Target Environment"
+    name="targetEnv"
+    options={filteredOptions()}
+    closeMenuOnSelect={false}
+    menuPortalTarget={document.body}
+    required
+    isDisabled={isDisabled.targetEnv}
+    value={selectedOptions}
+    onChange={handlemulti}
+    isMulti={true}
+    hideSelectedOptions={false}
+    getOptionLabel={(e) => (
+      <div>
+        <input type="checkbox" checked={selectedOptions?.some(opt => opt.value === e.value)} readOnly /> {e.label}
+      </div>
+    )}
+  />
+</div>;
