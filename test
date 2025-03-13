@@ -1,12 +1,44 @@
-const handleChange = (e) => {
-        const { name, value } = e.target;
-        const updatedData = { ...formData, [name]: value };
-        setFormData(updatedData);
-        localStorage.setItem("formData", JSON.stringify(updatedData));
+import React, { useState, useEffect } from 'react';
+import './ResultPage.css';
+
+const ResultPage = ({ data, onBack }) => {
+  const [showButton, setShowButton] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 300) {
+        setShowButton(true);
+      } else {
+        setShowButton(false);
+      }
     };
 
-    // Optional: Clear localStorage when needed
-    const clearForm = () => {
-        setFormData({ adEntId: "", targetEnv: "" });
-        localStorage.removeItem("formData");
-    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  return (
+    <div>
+      <button className="back-button" onClick={onBack}>Back</button>
+
+      {/* Back to Top Button */}
+      {showButton && (
+        <button className="back-to-top" onClick={scrollToTop}>
+          ⬆️
+        </button>
+      )}
+
+      {/* Your Table and Data */}
+      <h1>Component - {data[0]?.component}</h1>
+      <h1>Summary - {data[0]?.reference?.toUpperCase()}</h1>
+
+      {/* Table and Other Data Goes Here */}
+    </div>
+  );
+};
+
+export default ResultPage;
