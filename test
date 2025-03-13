@@ -1,95 +1,18 @@
-import React, { useState, useEffect, useRef } from "react";
-import "./ResultPage.css";
-
-const ResultPage = ({ data, onBack }) => {
-  const scrollContainerRef = useRef(null);
-  const [showButton, setShowButton] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (scrollContainerRef.current) {
-        setShowButton(scrollContainerRef.current.scrollTop > 100);
-      }
-    };
-
-    const container = scrollContainerRef.current;
-    if (container) {
-      container.addEventListener("scroll", handleScroll);
-    }
-
-    return () => {
-      if (container) {
-        container.removeEventListener("scroll", handleScroll);
-      }
-    };
-  }, []);
-
-  const scrollToTop = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
-    }
-  };
-
-  return (
-    <div className="result-container">
-      <button className="back-button" onClick={onBack}>Back</button>
-
-      {/* Scrollable container */}
-      <div ref={scrollContainerRef} className="scrollable-content">
-        <h1>Summary - {data[0].reference.toUpperCase()}</h1>
-
-        {/* Table */}
-        <table className="result-table">
-          <thead>
-            <tr>
-              <th>Environment</th>
-              <th>Matching keys</th>
-              <th>Mismatching keys</th>
-              <th>Missing keys</th>
-              <th>Total keys</th>
-            </tr>
-          </thead>
-          <tbody>
-            {data.map((d) => (
-              <tr key={d.target}>
-                <td>{d.target.toUpperCase()}</td>
-                <td>{d.matching}</td>
-                <td>{d.mismatching}</td>
-                <td>{d.missing}</td>
-                <td>{d.total_keys}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-
-        {data.map((d) => (
-          <div key={d.target} id={`env-${d.target.toUpperCase()}`}>
-            <h1>{d.target.toUpperCase()}</h1>
-            <br />
-            {d.missinglist && d.missinglist.length > 0 && (
-              <>
-                <b>List of missing keys:</b>
-                <pre>{d.missinglist.join("\n")}</pre>
-              </>
-            )}
-            {d.mismatchinglist && d.mismatchinglist.length > 0 && (
-              <>
-                <b>Mismatching keys:</b>
-                <pre style={{ whiteSpace: "pre-wrap" }}>{d.mismatchinglist.join("\n")}</pre>
-              </>
-            )}
-          </div>
-        ))}
-      </div>
-
-      {/* Back to Top Button */}
-      {showButton && (
-        <button className="back-to-top" onClick={scrollToTop}>
-          🔴⬆️
-        </button>
-      )}
-    </div>
-  );
-};
-
-export default ResultPage;
+.back-to-top {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: red;
+  color: white;
+  text-decoration: none;
+  font-size: 24px;
+  padding: 10px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 50px;
+  height: 50px;
+  z-index: 1000; /* Ensures it's always on top */
+  cursor: pointer;
+}
