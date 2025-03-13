@@ -1,3 +1,45 @@
-console.log("Page Height:", document.documentElement.scrollHeight);
-console.log("Viewport Height:", document.documentElement.clientHeight);
-console.log("Can Scroll?", document.documentElement.scrollHeight > document.documentElement.clientHeight);
+import React, { useState, useEffect, useRef } from "react";
+import "./ResultPage.css"; // Ensure you have this for styling
+
+const ResultPage = ({ data, onBack }) => {
+  const [showButton, setShowButton] = useState(false);
+  const scrollableDivRef = useRef(null); // Ref for the scrollable container
+
+  useEffect(() => {
+    const scrollableDiv = scrollableDivRef.current;
+    if (!scrollableDiv) return;
+
+    // Function to check scroll position
+    const handleScroll = () => {
+      setShowButton(scrollableDiv.scrollTop > 300); // Show button after 300px scroll
+    };
+
+    scrollableDiv.addEventListener("scroll", handleScroll);
+    return () => scrollableDiv.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Scroll to top function
+  const scrollToTop = () => {
+    if (scrollableDivRef.current) {
+      scrollableDivRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
+  return (
+    <div ref={scrollableDivRef} className="scrollable-container">
+      <button className="back-button" onClick={onBack}>Back</button>
+
+      {/* Your Table and Other Content */}
+      <h1>Result Page</h1>
+
+      {/* Back to Top Button */}
+      {showButton && (
+        <button className="back-to-top" onClick={scrollToTop}>
+          ⬆️
+        </button>
+      )}
+    </div>
+  );
+};
+
+export default ResultPage;
