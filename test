@@ -1,44 +1,26 @@
-import React, { useState, useEffect } from 'react';
-import './ResultPage.css';
+.back-to-top {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 50px;
+  height: 50px;
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3);
+  transition: opacity 0.3s ease-in-out;
+}
 
-const ResultPage = ({ data, onBack }) => {
-  const [showButton, setShowButton] = useState(false);
+.back-to-top:hover {
+  background-color: darkred;
+}
 
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 300) {
-        setShowButton(true);
-      } else {
-        setShowButton(false);
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  return (
-    <div>
-      <button className="back-button" onClick={onBack}>Back</button>
-
-      {/* Back to Top Button */}
-      {showButton && (
-        <button className="back-to-top" onClick={scrollToTop}>
-          ⬆️
-        </button>
-      )}
-
-      {/* Your Table and Data */}
-      <h1>Component - {data[0]?.component}</h1>
-      <h1>Summary - {data[0]?.reference?.toUpperCase()}</h1>
-
-      {/* Table and Other Data Goes Here */}
-    </div>
-  );
-};
-
-export default ResultPage;
+.back-to-top:focus {
+  outline: none;
+}
