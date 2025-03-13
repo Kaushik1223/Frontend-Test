@@ -1,41 +1,93 @@
 import React, { useState, useEffect, useRef } from "react";
-import "./ResultPage.css"; // Ensure you have this for styling
+import "./ResultPage.css";
 
 const ResultPage = ({ data, onBack }) => {
+  const scrollContainerRef = useRef(null);
   const [showButton, setShowButton] = useState(false);
-  const scrollableDivRef = useRef(null); // Ref for the scrollable container
+
+  const handleScroll = () => {
+    if (scrollContainerRef.current) {
+      setShowButton(scrollContainerRef.current.scrollTop > 100);
+    }
+  };
 
   useEffect(() => {
-    const scrollableDiv = scrollableDivRef.current;
-    if (!scrollableDiv) return;
+    const container = scrollContainerRef.current;
+    if (container) {
+      container.addEventListener("scroll", handleScroll);
+    }
 
-    // Function to check scroll position
-    const handleScroll = () => {
-      setShowButton(scrollableDiv.scrollTop > 300); // Show button after 300px scroll
+    return () => {
+      if (container) {
+        container.removeEventListener("scroll", handleScroll);
+      }
     };
-
-    scrollableDiv.addEventListener("scroll", handleScroll);
-    return () => scrollableDiv.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Scroll to top function
   const scrollToTop = () => {
-    if (scrollableDivRef.current) {
-      scrollableDivRef.current.scrollTo({ top: 0, behavior: "smooth" });
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
   return (
-    <div ref={scrollableDivRef} className="scrollable-container">
-      <button className="back-button" onClick={onBack}>Back</button>
+    <div className="result-container">
+      <button className="back-button" onClick={onBack}>
+        Back
+      </button>
 
-      {/* Your Table and Other Content */}
-      <h1>Result Page</h1>
+      {/* Scrollable container */}
+      <div ref={scrollContainerRef} className="scrollable-content">
+        <h1>Summary - {data[0].reference.toUpperCase()}</h1>
+
+        {/* Table and content */}
+        <table className="result-table">
+          <thead>
+            <tr>
+              <th>Environment</th>
+              <th>Matching keys</th>
+              <th>Mismatching keys</th>
+              <th>Missing keys</th>
+              <th>Total keys</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.map((d) => (
+              <tr key={d.target}>
+                <td>{d.target.toUpperCase()}</td>
+                <td>{d.matching}</td>
+                <td>{d.mismatching}</td>
+                <td>{d.missing}</td>
+                <td>{d.total_keys}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        {data.map((d) => (
+          <div key={d.target} id={`env-${d.target.toUpperCase()}`}>
+            <h1>{d.target.toUpperCase()}</h1>
+            <br />
+            {d.missinglist && d.missinglist.length > 0 && (
+              <>
+                <b>List of missing keys:</b>
+                <pre>{d.missinglist.join("\n")}</pre>
+              </>
+            )}
+            {d.mismatchinglist && d.mismatchinglist.length > 0 && (
+              <>
+                <b>Mismatching keys:</b>
+                <pre style={{ whiteSpace: "pre-wrap" }}>{d.mismatchinglist.join("\n")}</pre>
+              </>
+            )}
+          </div>
+        ))}
+      </div>
 
       {/* Back to Top Button */}
       {showButton && (
         <button className="back-to-top" onClick={scrollToTop}>
-          ⬆️
+          🔴⬆️
         </button>
       )}
     </div>
@@ -43,3 +95,29 @@ const ResultPage = ({ data, onBack }) => {
 };
 
 export default ResultPage;
+
+--------------------------
+
+.back-to-top {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: red;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  font-size: 24px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scrollable-content {
+  height: 80vh;
+  overflow-y: auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+}
