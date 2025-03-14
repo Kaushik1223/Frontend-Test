@@ -1,14 +1,10 @@
-.back-to-top {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
-  font-size: 50px;
-  color: red;
-  cursor: pointer;
-  transition: color 0.3s ease-in-out;
-  z-index: 1000; /* Ensures it's always on top */
-}
+const convertToIST = (usTime) => {
+  // Combine the date and time for accurate conversion
+  const usDateTime = `${table[0].dateTime[0]} ${usTime}`;
 
-.back-to-top:hover {
-  color: darkred;
-}
+  // Create a Date object assuming the backend sends US time in UTC
+  const dateObj = new Date(usDateTime + " UTC");
+
+  // Convert to IST (Indian Standard Time)
+  return dateObj.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+};
