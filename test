@@ -1,10 +1,49 @@
-const convertToIST = (usTime) => {
-  // Combine the date and time for accurate conversion
-  const usDateTime = `${table[0].dateTime[0]} ${usTime}`;
+import { FaChevronCircleUp } from "react-icons/fa";
+import { useState, useEffect } from "react";
 
-  // Create a Date object assuming the backend sends US time in UTC
-  const dateObj = new Date(usDateTime + " UTC");
+const ResultPage: React.FC<ResultPageProps> = ({ data, onBack }) => {
+  const [showButton, setShowButton] = useState<boolean>(false);
 
-  // Convert to IST (Indian Standard Time)
-  return dateObj.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" });
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowButton(window.scrollY > 100);
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Function to scroll smoothly to the top
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  return (
+    <div>
+      {/* Back to top button */}
+      {showButton && (
+        <button
+          onClick={scrollToTop}
+          style={{
+            position: "fixed",
+            bottom: "20px",
+            right: "20px",
+            backgroundColor: "red",
+            color: "white",
+            border: "none",
+            borderRadius: "50%",
+            width: "50px",
+            height: "50px",
+            cursor: "pointer",
+            fontSize: "2rem",
+          }}
+          title="Back to Top"
+        >
+          <FaChevronCircleUp />
+        </button>
+      )}
+
+      {/* Your page content here */}
+    </div>
+  );
 };
