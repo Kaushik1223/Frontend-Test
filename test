@@ -1,17 +1,16 @@
-initscript {
-    repositories {
-        // your maven config...
-    }
-    dependencies {
-        // your dependencies
-    }
-}
-
-// Add this after the `initscript` block
 allprojects {
-    tasks.withType(JavaCompile).configureEach {
-        sourceCompatibility = '17'
-        targetCompatibility = '17'
-        options.release = 17
+    buildscript {
+        repositories {
+            mavenCentral()
+        }
+        dependencies {
+            classpath 'jakarta.servlet:jakarta.servlet-api:5.0.0'
+        }
+    }
+
+    afterEvaluate {
+        dependencies {
+            implementation 'jakarta.servlet:jakarta.servlet-api:5.0.0'
+        }
     }
 }
